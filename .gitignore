@@ -1,0 +1,21 @@
+# Local machine-specific settings
+.zshrc.local
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might contain sensitive data
+*.log
+
+# Neovim
+nvim/.claude/
+
+# History and cache files (if any)
+*.swp
+*.swo
+*~
