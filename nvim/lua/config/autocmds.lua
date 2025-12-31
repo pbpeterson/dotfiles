@@ -55,18 +55,6 @@ autocmd("FileType", {
   desc = "Close certain filetypes with q",
 })
 
--- Auto-format on save for specific filetypes
--- Uses conform.nvim for better performance (prettierd, etc.)
-augroup("auto_format", { clear = true })
-autocmd("BufWritePre", {
-  group = "auto_format",
-  pattern = { "*.ts", "*.tsx", "*.js", "*.jsx", "*.lua", "*.json", "*.css", "*.scss", "*.html", "*.md" },
-  callback = function(args)
-    require("conform").format({ bufnr = args.buf, lsp_fallback = true })
-  end,
-  desc = "Auto-format before saving with conform.nvim",
-})
-
 -- Check if we need to reload the file when it changed
 augroup("checktime", { clear = true })
 autocmd({ "FocusGained", "TermClose", "TermLeave" }, {
