@@ -5,6 +5,36 @@ return {
     "folke/snacks.nvim",
     opts = {
       scroll = { enabled = false },
+      picker = {
+        sources = {
+          explorer = {
+            ignored = true,
+            exclude = {
+              "node_modules",
+              ".git",
+              "dist",
+              "build",
+              ".next",
+              "__pycache__",
+              "*.pyc",
+              ".DS_Store",
+            },
+          },
+          files = {
+            ignored = true,
+            exclude = {
+              "node_modules",
+              ".git",
+              "dist",
+              "build",
+              ".next",
+              "__pycache__",
+              "*.pyc",
+              ".DS_Store",
+            },
+          },
+        },
+      },
       dashboard = {
         preset = {
           pick = function(cmd, opts)

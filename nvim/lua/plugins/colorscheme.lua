@@ -15,6 +15,7 @@ return {
     integrations = {
       cmp = true,
       flash = true,
+      fzf = true,
       gitsigns = true,
       indent_blankline = { enabled = true, scope_color = "lavender" },
       mason = true,
@@ -28,8 +29,10 @@ return {
           information = { "undercurl" },
         },
       },
+      neotree = true,
       noice = true,
       notify = true,
+      snacks = true,
       telescope = { enabled = true },
       treesitter = true,
       which_key = true,
