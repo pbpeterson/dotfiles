@@ -62,3 +62,8 @@ map("t", "<C-j>", "<C-\\><C-n><C-w>j", { desc = "Move to bottom window from term
 map("t", "<C-k>", "<C-\\><C-n><C-w>k", { desc = "Move to top window from terminal" })
 map("t", "<C-l>", "<C-\\><C-n><C-w>l", { desc = "Move to right window from terminal" })
 map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+
+-- Find files sorted by frecency (recent + frequent)
+map("n", "<leader><leader>", function()
+  Snacks.picker.files({ matcher = { frecency = true, sort_empty = true } })
+end, { desc = "Find Files (frecency)" })
