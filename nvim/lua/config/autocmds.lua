@@ -114,3 +114,10 @@ autocmd("BufWritePre", {
   end,
   desc = "Remove trailing whitespace on save",
 })
+
+-- Copy current buffer path to clipboard (relative to project root/cwd)
+vim.api.nvim_create_user_command("Copypath", function()
+  local path = vim.fn.expand("%:.")
+  vim.fn.setreg("+", path)
+  vim.notify("Copied: " .. path, vim.log.levels.INFO)
+end, { desc = "Copy current buffer path to clipboard (relative to cwd)" })
