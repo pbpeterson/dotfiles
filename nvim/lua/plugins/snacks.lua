@@ -1,5 +1,7 @@
 -- Snacks plugin configuration
 -- Smooth scrolling is disabled for better performance
+local constants = require("config.constants")
+
 return {
   {
     "folke/snacks.nvim",
@@ -9,29 +11,11 @@ return {
         sources = {
           explorer = {
             ignored = true,
-            exclude = {
-              "node_modules",
-              ".git",
-              "dist",
-              "build",
-              ".next",
-              "__pycache__",
-              "*.pyc",
-              ".DS_Store",
-            },
+            exclude = constants.exclude_patterns,
           },
           files = {
             ignored = true,
-            exclude = {
-              "node_modules",
-              ".git",
-              "dist",
-              "build",
-              ".next",
-              "__pycache__",
-              "*.pyc",
-              ".DS_Store",
-            },
+            exclude = constants.exclude_patterns,
           },
         },
       },
