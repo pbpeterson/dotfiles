@@ -24,7 +24,7 @@ export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 
 # Create directories if they don't exist
-mkdir -p "$XDG_DATA_HOME/zsh" "$XDG_CACHE_HOME/zsh"
+[[ -d "$XDG_DATA_HOME/zsh" ]] || mkdir -p "$XDG_DATA_HOME/zsh" "$XDG_CACHE_HOME/zsh"
 
 # ============================================================================
 # PATH Configuration
@@ -32,7 +32,7 @@ mkdir -p "$XDG_DATA_HOME/zsh" "$XDG_CACHE_HOME/zsh"
 # correct tool precedence. Earlier entries have higher priority.
 # Note: typeset -U prevents duplicate entries in PATH
 # ============================================================================
-typeset -U PATH  # Ensures no duplicate entries in PATH
+typeset -U PATH fpath  # Ensures no duplicate entries
 
 export PNPM_HOME="$HOME/Library/pnpm"
 export ASDF_DATA_DIR="${ASDF_DATA_DIR:-$HOME/.asdf}"
@@ -54,7 +54,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # fzf-tab: git clone https://github.com/Aloxaf/fzf-tab ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/fzf-tab
 # zsh-autosuggestions: git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
 # zsh-syntax-highlighting: git clone https://github.com/zsh-users/zsh-syntax-highlighting ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-plugins=(fzf-tab git asdf zsh-autosuggestions zsh-syntax-highlighting docker)
+plugins=(fzf-tab git zsh-autosuggestions zsh-syntax-highlighting docker)
 
 # Load Oh My Zsh with error handling
 if [[ -f $ZSH/oh-my-zsh.sh ]]; then
@@ -78,7 +78,7 @@ setopt HIST_IGNORE_SPACE      # Don't record entries starting with a space
 setopt HIST_REDUCE_BLANKS     # Remove superfluous blanks before recording
 setopt HIST_VERIFY            # Show command with history expansion before running
 setopt APPEND_HISTORY         # Append to history file, don't overwrite
-setopt INC_APPEND_HISTORY     # Add commands immediately, not at shell exit
+setopt HIST_FIND_NO_DUPS      # Don't show duplicates when searching history
 
 # ============================================================================
 # Zsh Options
@@ -100,9 +100,7 @@ setopt NUMERIC_GLOB_SORT      # Sort filenames numerically when relevant
 FPATH="$HOMEBREW_PREFIX/share/zsh/site-functions:$FPATH"
 
 # Add deno completions to search path
-if [[ ":$FPATH:" != *":$HOME/.zsh/completions:"* ]]; then
-  export FPATH="$HOME/.zsh/completions:$FPATH"
-fi
+fpath=($HOME/.zsh/completions $fpath)
 
 # Optimized compinit with caching (only rebuild once per day)
 autoload -Uz compinit
@@ -158,16 +156,6 @@ zstyle ':fzf-tab:complete:*:*' fzf-preview 'bat --color=always --style=numbers -
 
 # Switch between groups with < and >
 zstyle ':fzf-tab:*' switch-group '<' '>'
-
-# ============================================================================
-# fzf Key Bindings
-# ============================================================================
-# Ctrl+R: Fuzzy search history
-# Ctrl+T: Fuzzy file finder
-# Alt+C:  Fuzzy cd into subdirectories
-# Tab:    fzf-tab enhanced completion with preview
-# Ctrl+E: Accept autosuggestion (zsh-autosuggestions)
-source "$HOMEBREW_PREFIX/opt/fzf/shell/key-bindings.zsh"
 
 # ============================================================================
 # Modular Configuration Loading
