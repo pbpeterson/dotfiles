@@ -92,6 +92,9 @@ setopt EXTENDED_GLOB          # Extended globbing capabilities
 setopt NO_CASE_GLOB           # Case insensitive globbing
 setopt NUMERIC_GLOB_SORT      # Sort filenames numerically when relevant
 
+# Key bindings
+bindkey '^L' clear-screen       # Ctrl+L to clear terminal
+
 # ============================================================================
 # Completions
 # Purpose: Enable and optimize tab completion with caching for faster startup
