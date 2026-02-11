@@ -24,9 +24,6 @@ vim.opt.writebackup = false -- Disable backup before overwriting file
 vim.opt.undofile = true -- Enable persistent undo
 vim.opt.undolevels = 10000 -- Maximum number of changes that can be undone
 
--- Better completion experience
-vim.opt.completeopt = "menu,menuone,noselect" -- Better completion menu behavior
-
 -- Search settings
 vim.opt.ignorecase = true -- Ignore case when searching
 vim.opt.smartcase = true -- Override ignorecase if search contains capitals

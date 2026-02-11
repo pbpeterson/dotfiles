@@ -3,6 +3,8 @@
 -- Activated only when deno.json or deno.jsonc is present
 -- Features: Inlay hints, auto-imports, dependency caching, code lens
 
+local constants = require("config.constants")
+
 return {
   -- LSP Configuration
   {
@@ -19,7 +21,7 @@ return {
             "typescript.tsx",
           },
           root_dir = function(...)
-            return require("lspconfig.util").root_pattern("deno.json", "deno.jsonc")(...)
+            return require("lspconfig.util").root_pattern(unpack(constants.deno_markers))(...)
           end,
           single_file_support = false,
           settings = {
@@ -72,11 +74,7 @@ return {
             callback = function(args)
               local client = vim.lsp.get_client_by_id(args.data.client_id)
               if client and client.name == "denols" then
-                local is_deno = vim.fs.find(
-                  { "deno.json", "deno.jsonc" },
-                  { path = vim.api.nvim_buf_get_name(args.buf), upward = true }
-                )[1] ~= nil
-                if not is_deno then
+                if not constants.is_deno_project(vim.api.nvim_buf_get_name(args.buf)) then
                   vim.lsp.stop_client(client.id)
                 end
               end

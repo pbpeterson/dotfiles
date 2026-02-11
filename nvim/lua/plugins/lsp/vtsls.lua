@@ -3,6 +3,8 @@
 -- Automatically excludes Deno projects and prioritizes tsconfig.json
 -- Features: Inlay hints, auto-imports, organize imports, code actions
 
+local constants = require("config.constants")
+
 return {
   -- LSP Configuration
   {
@@ -23,18 +25,16 @@ return {
           },
           root_dir = function(filename, bufnr)
             local lspconfig = require("lspconfig")
-            -- Explicitly exclude Deno projects
-            local denoRootDir = lspconfig.util.root_pattern("deno.json", "deno.jsonc")(filename)
-            if denoRootDir then
+            -- Exclude Deno projects
+            if constants.is_deno_project(filename) then
               return nil
             end
-            -- Prioriza o tsconfig.json mais próximo do arquivo
-            -- Isso garante que subprojetos em um monorepo usem seu próprio tsconfig
+            -- Prioritize closest tsconfig.json for monorepo subprojects
             return lspconfig.util.root_pattern("tsconfig.json")(filename)
               or lspconfig.util.root_pattern("package.json")(filename)
               or lspconfig.util.root_pattern("jsconfig.json")(filename)
           end,
-          single_file_support = false,
+          single_file_support = true,
           settings = {
             complete_function_calls = true,
             vtsls = {
@@ -78,29 +78,14 @@ return {
       },
       setup = {
         vtsls = function(_, opts)
-          -- Stop vtsls from attaching to Deno buffers
-          vim.api.nvim_create_autocmd("LspAttach", {
-            callback = function(args)
-              local client = vim.lsp.get_client_by_id(args.data.client_id)
-              if client and client.name == "vtsls" then
-                local is_deno = vim.fs.find(
-                  { "deno.json", "deno.jsonc" },
-                  { path = vim.api.nvim_buf_get_name(args.buf), upward = true }
-                )[1] ~= nil
-                if is_deno then
-                  vim.lsp.stop_client(client.id)
-                end
-              end
-            end,
-          })
-
+          -- Coordinate vtsls/denols: only attach the correct server based on project markers
           if vim.lsp.config.denols and vim.lsp.config.vtsls then
             ---@param server string
             local resolve = function(server)
               local markers, root_dir = vim.lsp.config[server].root_markers, vim.lsp.config[server].root_dir
               vim.lsp.config(server, {
                 root_dir = function(bufnr, on_dir)
-                  local is_deno = vim.fs.root(bufnr, { "deno.json", "deno.jsonc" }) ~= nil
+                  local is_deno = vim.fs.root(bufnr, constants.deno_markers) ~= nil
                   if is_deno == (server == "denols") then
                     if root_dir then
                       return root_dir(bufnr, on_dir)

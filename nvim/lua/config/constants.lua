@@ -14,4 +14,14 @@ M.exclude_patterns = {
   ".DS_Store",
 }
 
+-- Deno project marker files
+M.deno_markers = { "deno.json", "deno.jsonc" }
+
+-- Check if a path is within a Deno project
+---@param path? string file path or directory to check (defaults to cwd)
+---@return boolean
+function M.is_deno_project(path)
+  return vim.fs.find(M.deno_markers, { path = path or vim.fn.getcwd(), upward = true })[1] ~= nil
+end
+
 return M

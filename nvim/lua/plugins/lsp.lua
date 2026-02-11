@@ -2,6 +2,16 @@
 -- Central configuration for Language Server Protocol
 -- Loads individual LSP configs from lua/plugins/lsp/ directory
 
+local constants = require("config.constants")
+
+-- Select formatter based on Deno vs Node.js project
+local function ts_formatter()
+  if constants.is_deno_project() then
+    return { "deno_fmt" }
+  end
+  return { "prettier" }
+end
+
 return {
   {
     "neovim/nvim-lspconfig",
@@ -14,12 +24,10 @@ return {
         -- Disable eslint LSP since we're using eslint_d
         eslint = false,
         tailwindcss = require("plugins.lsp.tailwindcss").opts,
-        autotag = require("plugins.lsp.autotag").opts,
         denols = require("plugins.lsp.denols").opts,
         vtsls = require("plugins.lsp.vtsls").opts,
       },
       setup = {
-        autotag = require("plugins.lsp.autotag").setup,
         tailwindcss = require("plugins.lsp.tailwindcss").setup,
         vtsls = require("plugins.lsp.vtsls").setup,
       },
@@ -34,7 +42,6 @@ return {
         -- LSP servers
         "deno",
         "tailwindcss-language-server",
-        "emmet-ls",
         -- Formatters (daemon versions for better performance)
         "prettierd",
         "stylua", -- Lua formatter
@@ -49,30 +56,10 @@ return {
     "stevearc/conform.nvim",
     opts = {
       formatters_by_ft = {
-        typescript = function(bufnr)
-          if vim.fs.find({ "deno.json", "deno.jsonc" }, { upward = true })[1] then
-            return { "deno_fmt" }
-          end
-          return { "prettier" }
-        end,
-        typescriptreact = function(bufnr)
-          if vim.fs.find({ "deno.json", "deno.jsonc" }, { upward = true })[1] then
-            return { "deno_fmt" }
-          end
-          return { "prettier" }
-        end,
-        javascript = function(bufnr)
-          if vim.fs.find({ "deno.json", "deno.jsonc" }, { upward = true })[1] then
-            return { "deno_fmt" }
-          end
-          return { "prettier" }
-        end,
-        javascriptreact = function(bufnr)
-          if vim.fs.find({ "deno.json", "deno.jsonc" }, { upward = true })[1] then
-            return { "deno_fmt" }
-          end
-          return { "prettier" }
-        end,
+        typescript = ts_formatter,
+        typescriptreact = ts_formatter,
+        javascript = ts_formatter,
+        javascriptreact = ts_formatter,
         lua = { "stylua" },
         json = { "prettier" },
         jsonc = { "prettier" },
