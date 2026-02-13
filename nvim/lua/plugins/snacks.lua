@@ -10,6 +10,10 @@ return {
   -- Disable bufferline (use picker-based buffer switching instead)
   { "akinsho/bufferline.nvim", enabled = false },
 
+  -- Disable unused plugins
+  { "nvim-lua/plenary.nvim", enabled = false },
+  { "iamcco/markdown-preview.nvim", enabled = false },
+
   {
     "folke/snacks.nvim",
     opts = {
