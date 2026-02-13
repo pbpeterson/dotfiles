@@ -105,4 +105,24 @@ return {
     "roobert/tailwindcss-colorizer-cmp.nvim",
     opts = {},
   },
+
+  -- Disable snippets (LSP completions are sufficient)
+  { "rafamadriz/friendly-snippets", enabled = false },
+  {
+    "saghen/blink.cmp",
+    opts = {
+      sources = {
+        default = { "lsp", "path", "buffer" },
+        providers = {
+          snippets = { enabled = false },
+        },
+        -- Filter out snippet-kind completions from LSP
+        transform_items = function(_, items)
+          return vim.tbl_filter(function(item)
+            return item.kind ~= 15 -- 15 = Snippet
+          end, items)
+        end,
+      },
+    },
+  },
 }
