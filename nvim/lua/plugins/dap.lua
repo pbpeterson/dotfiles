@@ -152,9 +152,10 @@ return {
     end,
   },
 
-  -- Virtual text support for DAP
+  -- Virtual text support for DAP (lazy-loaded with nvim-dap)
   {
     "theHamsta/nvim-dap-virtual-text",
+    lazy = true,
     dependencies = { "mfussenegger/nvim-dap", "nvim-treesitter/nvim-treesitter" },
     opts = {
       enabled = true,

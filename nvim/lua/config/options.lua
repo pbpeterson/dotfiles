@@ -14,7 +14,7 @@ vim.opt.termguicolors = true -- Enable 24-bit RGB colors in the terminal
 -- Performance optimizations
 vim.opt.updatetime = 250 -- Faster completion (default is 4000ms)
 vim.opt.timeoutlen = 300 -- Faster key sequence completion
-vim.opt.redrawtime = 1500 -- Time in milliseconds for redrawing the display
+vim.opt.redrawtime = 800 -- Time in milliseconds for redrawing the display
 vim.opt.ttimeoutlen = 10 -- Time in milliseconds to wait for a key code sequence
 
 -- Swap and backup settings for better performance
@@ -22,7 +22,7 @@ vim.opt.swapfile = false -- Disable swap file (use backup instead)
 vim.opt.backup = false -- Disable backup file
 vim.opt.writebackup = false -- Disable backup before overwriting file
 vim.opt.undofile = true -- Enable persistent undo
-vim.opt.undolevels = 10000 -- Maximum number of changes that can be undone
+vim.opt.undolevels = 2000 -- Maximum number of changes that can be undone
 
 -- Search settings
 vim.opt.ignorecase = true -- Ignore case when searching

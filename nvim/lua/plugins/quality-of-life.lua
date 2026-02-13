@@ -1,37 +1,7 @@
 -- Quality of life plugins for better editing experience
 return {
-  -- Indent guides with vertical lines
-  {
-    "lukas-reineke/indent-blankline.nvim",
-    main = "ibl",
-    event = "BufReadPost",
-    opts = {
-      indent = {
-        char = "│",
-        tab_char = "│",
-      },
-      scope = {
-        enabled = true,
-        show_start = false,
-        show_end = false,
-      },
-      exclude = {
-        filetypes = {
-          "help",
-          "alpha",
-          "dashboard",
-          "neo-tree",
-          "Trouble",
-          "trouble",
-          "lazy",
-          "mason",
-          "notify",
-          "toggleterm",
-          "lazyterm",
-        },
-      },
-    },
-  },
+  -- Disable indent-blankline (replaced by snacks.indent)
+  { "lukas-reineke/indent-blankline.nvim", enabled = false },
 
   -- Twilight: Dim inactive portions of the code
   {

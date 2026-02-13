@@ -3,10 +3,24 @@
 local constants = require("config.constants")
 
 return {
+  -- Disable noice.nvim (replaced by snacks notifier/input)
+  { "folke/noice.nvim", enabled = false },
+  { "MunifTanjim/nui.nvim", enabled = false },
+
+  -- Disable bufferline (use picker-based buffer switching instead)
+  { "akinsho/bufferline.nvim", enabled = false },
+
   {
     "folke/snacks.nvim",
     opts = {
       scroll = { enabled = false },
+      indent = {
+        enabled = true,
+        char = "│",
+        scope = { enabled = true },
+      },
+      notifier = { enabled = true },
+      input = { enabled = true },
       picker = {
         sources = {
           explorer = {
