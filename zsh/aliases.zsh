@@ -1,28 +1,24 @@
 # ~/.zsh/aliases.zsh
 # Shell aliases and command replacements
+# Note: Navigation aliases (.., ..., ....) and grep are provided by Oh My Zsh
 
 # ============================================================================
 # File Listing (lsd)
 # ============================================================================
-if command -v lsd &> /dev/null; then
-  alias ls="lsd"
-  alias ll="lsd -la"
-  alias la="lsd -a"
-  alias lt="lsd --tree"
-  alias l="lsd -l"
-fi
+alias ls="lsd"
+alias ll="lsd -la"
+alias la="lsd -a"
+alias lt="lsd --tree"
+alias l="lsd -l"
 
 # ============================================================================
-# File Manager
+# Modern Replacements
 # ============================================================================
-command -v yazi &> /dev/null && alias y="yazi"
-
-# ============================================================================
-# Navigation
-# ============================================================================
-alias ..="cd .."
-alias ...="cd ../.."
-alias ....="cd ../../.."
+alias cat="bat"
+alias find="fd"
+alias du="dust"
+alias top="btop"
+alias y="yazi"
 
 # ============================================================================
 # Safety Nets
@@ -38,29 +34,12 @@ alias reload="source ~/.zshrc"
 alias zshconfig="$EDITOR ~/.zshrc"
 alias nvimconfig="$EDITOR ~/.config/nvim"
 alias tmuxconfig="$EDITOR ~/.tmux.conf"
-alias grep="grep --color=auto"
 
 # ============================================================================
-# Modern Replacements (only if installed)
+# Clipboard
 # ============================================================================
-command -v bat &> /dev/null && alias cat="bat"
-command -v fd &> /dev/null && alias find="fd"
-command -v dust &> /dev/null && alias du="dust"
-command -v btop &> /dev/null && alias top="btop"
-
-# ============================================================================
-# Clipboard (cross-platform)
-# ============================================================================
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  alias pbc="pbcopy"
-  alias pbp="pbpaste"
-elif command -v xclip &> /dev/null; then
-  alias pbc="xclip -selection clipboard"
-  alias pbp="xclip -selection clipboard -o"
-elif command -v wl-copy &> /dev/null; then
-  alias pbc="wl-copy"
-  alias pbp="wl-paste"
-fi
+alias pbc="pbcopy"
+alias pbp="pbpaste"
 
 # ============================================================================
 # Process Management

@@ -37,24 +37,28 @@ FZF-EOF"
 
 # fstash: Fuzzy git stash browser with preview
 fstash() {
-  local out q k sha
-  while out=$(
-    git stash list --pretty="%C(yellow)%h %>(14)%Cgreen%cr %C(blue)%gs" |
-    fzf --ansi --no-sort --query="$q" --print-query \
-        --expect=ctrl-d,ctrl-a \
-        --preview "git stash show --color=always -p {1}");
-  do
-    mapfile -t out <<< "$out"
-    q="${out[0]}"
-    k="${out[1]}"
-    sha="${out[-1]}"
+  local q k sha
+  while true; do
+    local out
+    out=$(
+      git stash list --pretty="%C(yellow)%h %>(14)%Cgreen%cr %C(blue)%gs" |
+      fzf --ansi --no-sort --query="$q" --print-query \
+          --expect=ctrl-d,ctrl-a \
+          --preview "git stash show --color=always -p {1}"
+    ) || break
+
+    # Split output into array (zsh-compatible)
+    local lines=("${(@f)out}")
+    q="${lines[1]}"
+    k="${lines[2]}"
+    sha="${lines[-1]}"
     sha="${sha%% *}"
     [[ -z "$sha" ]] && continue
     if [[ "$k" == 'ctrl-d' ]]; then
       git diff $sha
     elif [[ "$k" == 'ctrl-a' ]]; then
       git stash apply $sha
-      break;
+      break
     else
       git stash show -p $sha
     fi
