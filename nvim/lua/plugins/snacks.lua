@@ -7,12 +7,11 @@ return {
   { "folke/noice.nvim", enabled = false },
   { "MunifTanjim/nui.nvim", enabled = false },
 
-  -- Disable bufferline (use picker-based buffer switching instead)
+  -- Disable bufferline (use <leader>, for buffer picker instead)
   { "akinsho/bufferline.nvim", enabled = false },
 
   -- Disable unused plugins
   { "nvim-lua/plenary.nvim", enabled = false },
-  { "iamcco/markdown-preview.nvim", enabled = false },
 
   {
     "folke/snacks.nvim",
