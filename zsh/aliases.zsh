@@ -47,8 +47,11 @@ alias pbp="pbpaste"
 alias ports="lsof -iTCP -sTCP:LISTEN -n -P"
 
 # ============================================================================
-# Tmux - Prompt for session and window name before starting
+# Tmux
 # ============================================================================
+alias tp="tmux-project"
+
+# Tmux - Prompt for session and window name before starting
 tmux() {
   if [[ $# -eq 0 ]]; then
     printf "Session name: "

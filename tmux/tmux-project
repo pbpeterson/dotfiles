@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIR=$({ echo "$HOME/dotfiles"; fd --type d --max-depth 1 . "$HOME/guidance" "$HOME/studies" "$HOME/projects"; } | fzf --prompt="Project dir: ")
+[ -z "$DIR" ] && exit 0
+
+DEFAULT_NAME=$(basename "$DIR")
+read -rp "Session name [$DEFAULT_NAME]: " NAME
+NAME="${NAME:-$DEFAULT_NAME}"
+
+tmux new-session -d -s "$NAME" -c "$DIR" -n "server"
+tmux new-window -t "$NAME" -c "$DIR" -n "nvim"
+tmux new-window -t "$NAME" -c "$DIR" -n "claude"
+tmux new-window -t "$NAME" -c "$DIR" -n "shell"
+tmux select-window -t "$NAME:1"
+
+if [ -n "${TMUX:-}" ]; then
+  tmux switch-client -t "$NAME"
+else
+  tmux attach-session -t "$NAME"
+fi
