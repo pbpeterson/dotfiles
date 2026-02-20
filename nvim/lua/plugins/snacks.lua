@@ -35,6 +35,8 @@ return {
             ignored = true,
             exclude = constants.exclude_patterns,
           },
+          grep = { focus = "input" },
+          live_grep = { focus = "input" },
         },
       },
       dashboard = {
