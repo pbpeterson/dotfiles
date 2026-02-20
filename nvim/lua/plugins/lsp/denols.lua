@@ -56,7 +56,7 @@ return {
               codeLens = {
                 implementations = true,
                 references = true,
-                referencesAllFunctions = true,
+                referencesAllFunctions = false,
               },
             },
           },
