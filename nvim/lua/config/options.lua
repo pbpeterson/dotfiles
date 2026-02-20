@@ -10,6 +10,7 @@ vim.opt.breakindent = true -- Maintain indentation on wrapped lines
 
 -- UI settings
 vim.opt.termguicolors = true -- Enable 24-bit RGB colors in the terminal
+vim.opt.showtabline = 0 -- Hide the tabline (buffer tabs)
 
 -- Performance optimizations
 vim.opt.updatetime = 250 -- Faster completion (default is 4000ms)

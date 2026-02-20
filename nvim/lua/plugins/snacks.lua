@@ -25,6 +25,7 @@ return {
       notifier = { enabled = true },
       input = { enabled = true },
       picker = {
+        focus = "list",
         sources = {
           explorer = {
             ignored = true,
