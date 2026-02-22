@@ -75,7 +75,6 @@ return {
         javascriptreact = ts_formatter,
         lua = { "stylua" },
         json = web_formatter,
-        jsonc = web_formatter,
         yaml = web_formatter,
         markdown = web_formatter,
         html = web_formatter,
