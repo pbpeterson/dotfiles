@@ -49,7 +49,7 @@ alias ports="lsof -iTCP -sTCP:LISTEN -n -P"
 # ============================================================================
 # Tmux
 # ============================================================================
-alias tp="tmux-project"
+alias tp="tmux create"
 
 # Tmux - Prompt for session and window name before starting
 tmux() {
