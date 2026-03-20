@@ -117,32 +117,26 @@ install_zsh_plugins() {
 
     local ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 
-    # fzf-tab
-    if [[ ! -d "$ZSH_CUSTOM/plugins/fzf-tab" ]]; then
-        print_step "Installing fzf-tab..."
-        git clone https://github.com/Aloxaf/fzf-tab "$ZSH_CUSTOM/plugins/fzf-tab"
-        print_success "fzf-tab installed"
-    else
-        print_warning "fzf-tab already installed"
-    fi
+    local plugins=(
+        "fzf-tab|https://github.com/Aloxaf/fzf-tab"
+        "zsh-autosuggestions|https://github.com/zsh-users/zsh-autosuggestions"
+        "zsh-syntax-highlighting|https://github.com/zsh-users/zsh-syntax-highlighting"
+    )
 
-    # zsh-autosuggestions
-    if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]]; then
-        print_step "Installing zsh-autosuggestions..."
-        git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
-        print_success "zsh-autosuggestions installed"
-    else
-        print_warning "zsh-autosuggestions already installed"
-    fi
-
-    # zsh-syntax-highlighting
-    if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]]; then
-        print_step "Installing zsh-syntax-highlighting..."
-        git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
-        print_success "zsh-syntax-highlighting installed"
-    else
-        print_warning "zsh-syntax-highlighting already installed"
-    fi
+    for entry in "${plugins[@]}"; do
+        local name="${entry%%|*}"
+        local url="${entry##*|}"
+        if [[ ! -d "$ZSH_CUSTOM/plugins/$name" ]]; then
+            print_step "Installing $name..."
+            if git clone "$url" "$ZSH_CUSTOM/plugins/$name"; then
+                print_success "$name installed"
+            else
+                print_error "Failed to clone $name"
+            fi
+        else
+            print_warning "$name already installed"
+        fi
+    done
 }
 
 # Install ASDF (version manager)
@@ -154,7 +148,14 @@ install_asdf() {
         return
     fi
 
-    git clone https://github.com/asdf-vm/asdf.git "$HOME/.asdf" --branch v0.14.1
+    local asdf_version
+    asdf_version=$(git ls-remote --tags --sort=-v:refname https://github.com/asdf-vm/asdf.git "v*" | head -1 | sed 's/.*refs\/tags\///')
+    if [[ -z "$asdf_version" ]]; then
+        asdf_version="v0.14.1"
+        print_warning "Could not fetch latest ASDF version, falling back to $asdf_version"
+    fi
+    print_step "Installing ASDF $asdf_version..."
+    git clone https://github.com/asdf-vm/asdf.git "$HOME/.asdf" --branch "$asdf_version"
     print_success "ASDF installed"
 }
 
@@ -164,9 +165,12 @@ setup_symlinks() {
 
     local DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-    # Backup existing files
+    # Backup existing files (handles regular files, directories, and symlinks)
     backup_if_exists() {
-        if [[ -f "$1" ]] || [[ -d "$1" ]]; then
+        if [[ -L "$1" ]]; then
+            print_warning "Removing existing symlink $1"
+            rm "$1"
+        elif [[ -f "$1" ]] || [[ -d "$1" ]]; then
             local backup="$1.backup.$(date +%Y%m%d_%H%M%S)"
             print_warning "Backing up $1 to $backup"
             mv "$1" "$backup"
@@ -177,20 +181,20 @@ setup_symlinks() {
     backup_if_exists "$HOME/.zshrc"
     backup_if_exists "$HOME/.zsh"
     ln -sf "$DOTFILES_DIR/zshrc" "$HOME/.zshrc"
-    ln -sf "$DOTFILES_DIR/zsh" "$HOME/.zsh"
+    ln -sfn "$DOTFILES_DIR/zsh" "$HOME/.zsh"
     print_success "Zsh config linked"
 
     # Tmux
     backup_if_exists "$HOME/.tmux.conf"
     backup_if_exists "$HOME/.tmux"
     ln -sf "$DOTFILES_DIR/tmux.conf" "$HOME/.tmux.conf"
-    ln -sf "$DOTFILES_DIR/tmux" "$HOME/.tmux"
+    ln -sfn "$DOTFILES_DIR/tmux" "$HOME/.tmux"
     print_success "Tmux config linked"
 
     # Neovim
     backup_if_exists "$HOME/.config/nvim"
     mkdir -p "$HOME/.config"
-    ln -sf "$DOTFILES_DIR/nvim" "$HOME/.config/nvim"
+    ln -sfn "$DOTFILES_DIR/nvim" "$HOME/.config/nvim"
     print_success "Neovim config linked"
 }
 
@@ -203,8 +207,12 @@ install_tpm() {
         return
     fi
 
-    # Since plugins are already in the dotfiles, just symlink
-    print_success "TPM already present in dotfiles"
+    mkdir -p "$HOME/.tmux/plugins"
+    if git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"; then
+        print_success "TPM installed"
+    else
+        print_error "Failed to clone TPM"
+    fi
 }
 
 # Install Neovim plugins
