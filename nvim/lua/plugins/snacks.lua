@@ -12,6 +12,7 @@ return {
 
   -- Disable unused plugins
   { "nvim-lua/plenary.nvim", enabled = false },
+  { "folke/tokyonight.nvim", lazy = true },
 
   {
     "folke/snacks.nvim",
