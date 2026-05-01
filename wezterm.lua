@@ -37,8 +37,8 @@ config.front_end = "WebGpu"
 config.warn_about_missing_glyphs = false
 config.audible_bell = "Disabled"
 
--- Allow Option key to be used for dead keys on macOS (for ç, accents, etc)
-config.send_composed_key_when_left_alt_is_pressed = true
+-- Left Option = Meta (for tmux M- bindings); Right Option = dead keys (ç, accents)
+config.send_composed_key_when_left_alt_is_pressed = false
 config.send_composed_key_when_right_alt_is_pressed = true
 
 return config
