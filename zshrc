@@ -40,7 +40,12 @@ export ASDF_DATA_DIR="${ASDF_DATA_DIR:-$HOME/.asdf}"
 # Cache Homebrew prefix for faster startup (hardcoded for Apple Silicon)
 export HOMEBREW_PREFIX="/opt/homebrew"
 
-export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PNPM_HOME:$HOMEBREW_PREFIX/opt/postgresql@18/bin:$HOMEBREW_PREFIX/bin:$ASDF_DATA_DIR/shims:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PNPM_HOME:$HOMEBREW_PREFIX/opt/sqlite/bin:$HOMEBREW_PREFIX/opt/postgresql@18/bin:$HOMEBREW_PREFIX/bin:$ASDF_DATA_DIR/shims:$PATH"
+
+# Homebrew SQLite (override macOS system version)
+export LDFLAGS="-L$HOMEBREW_PREFIX/opt/sqlite/lib"
+export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/sqlite/include"
+export PKG_CONFIG_PATH="$HOMEBREW_PREFIX/opt/sqlite/lib/pkgconfig"
 
 # ============================================================================
 # Oh My Zsh Configuration
