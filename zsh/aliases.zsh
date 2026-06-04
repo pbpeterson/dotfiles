@@ -19,6 +19,7 @@ alias find="fd"
 alias du="dust"
 alias top="btop"
 alias y="yazi"
+alias pg="pgcli"  # interactive postgres; use psql for scripts/pipes
 
 # ============================================================================
 # Safety Nets
@@ -73,3 +74,11 @@ tmux() {
     command tmux "$@"
   fi
 }
+
+
+# ============================================================================
+# Caffeinate
+# ============================================================================
+alias caf-stop='launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.caffeinate.plist'
+alias caf-start='launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.caffeinate.plist'
+alias caf-status='launchctl list | grep caffeinate'
