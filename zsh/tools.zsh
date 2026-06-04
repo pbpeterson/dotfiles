@@ -14,11 +14,8 @@ _cached_eval() {
   source "$cache_file"
 }
 
-# ============================================================================
-# Zoxide (smarter cd)
-# ============================================================================
-_cached_eval zoxide "zoxide init zsh"
-alias cd="z"
+# NOTE: zoxide init moved to the very end of ~/.zshrc so its doctor check passes
+# (zoxide must be the last shell-config init to run). Don't re-add it here.
 
 # ============================================================================
 # FZF - Fuzzy Finder

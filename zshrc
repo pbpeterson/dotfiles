@@ -191,3 +191,12 @@ done
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+export PATH="/opt/homebrew/opt/openvpn/sbin:$PATH"
+
+# ============================================================================
+# Zoxide (smarter cd) — MUST be last: its doctor check requires that no other
+# shell-config init runs after it. _cached_eval is defined in ~/.zsh/tools.zsh.
+# ============================================================================
+_cached_eval zoxide "zoxide init zsh"
+alias cd="z"
+
