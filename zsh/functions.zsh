@@ -74,3 +74,25 @@ helpme() {
   echo "  gdiff           - Fuzzy git diff"
   echo "  greset          - Fuzzy git unstage"
 }
+
+VPN_LOG="/tmp/openvpn.log"
+
+# Bring the VPN up in the background; takes the .ovpn file as an argument
+vpn-up() {
+  if [ -z "$1" ]; then
+    echo "Usage: vpn-up <path-to-file.ovpn>"
+    return 1
+  fi
+  sudo /opt/homebrew/sbin/openvpn --config "$1" --daemon --log "$VPN_LOG"
+  echo "VPN starting in the background. Use 'vpn-log' to follow it."
+}
+
+# Follow the logs live (Ctrl+C exits the log WITHOUT dropping the VPN)
+vpn-log() {
+  sudo tail -f "$VPN_LOG"
+}
+
+# Disconnect
+vpn-down() {
+  sudo pkill openvpn && echo "VPN disconnected"
+}
