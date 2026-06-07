@@ -55,6 +55,16 @@ export FZF_ALT_C_OPTS="
 "
 
 # ============================================================================
+# Atuin - Shell history (fuzzy search, stats, optional sync)
+# Purpose: Replaces Ctrl-R and Up-arrow with a searchable SQLite history.
+# Run `atuin import auto` once to backfill from the existing zsh history.
+# --disable-up-arrow keeps Up bound to zsh's own prefix search; Ctrl-R = atuin.
+# ============================================================================
+if command -v atuin &> /dev/null; then
+  _cached_eval atuin "atuin init zsh --disable-up-arrow"
+fi
+
+# ============================================================================
 # ASDF - Lazy Loading
 # Purpose: Defer asdf initialization until first use to improve startup time
 # ============================================================================

@@ -18,8 +18,18 @@ alias cat="bat"
 alias find="fd"
 alias du="dust"
 alias top="btop"
+alias ps="procs"  # nicer ps; use `command ps` for scripting
 alias y="yazi"
 alias pg="pgcli"  # interactive postgres; use psql for scripts/pipes
+alias lcli="litecli"  # interactive sqlite (autocomplete + syntax highlight)
+
+# ============================================================================
+# Git / Diff Tools
+# ============================================================================
+alias gdft="git dft"  # structural (syntax-aware) diff via difftastic
+alias lg="lazygit"
+alias gu="gitui"      # fast git TUI (Rust)
+alias ghd="gh dash"   # GitHub PRs/issues dashboard
 
 # ============================================================================
 # Safety Nets
