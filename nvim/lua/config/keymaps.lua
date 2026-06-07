@@ -17,7 +17,8 @@ map("n", "N", "Nzzzv", { desc = "Previous search result and center" })
 map("n", "*", "*zzzv", { desc = "Search word forward and center" })
 map("n", "#", "#zzzv", { desc = "Search word backward and center" })
 
--- Find files sorted by frecency (recent + frequent)
+-- Find files, most-recent-first: merges open buffers, MRU, and project files,
+-- frecency-ranked even on an empty query (smart source, sort_empty = true).
 map("n", "<leader><leader>", function()
-  Snacks.picker.files({ matcher = { frecency = true, sort_empty = true } })
-end, { desc = "Find Files (frecency)" })
+  Snacks.picker.smart()
+end, { desc = "Find Files (smart / recent)" })
