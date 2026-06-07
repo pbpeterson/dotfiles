@@ -22,7 +22,7 @@ _cached_eval() {
 # ============================================================================
 _cached_eval fzf "fzf --zsh"
 
-# Catppuccin Mocha theme colors
+# Kanagawa wave theme colors (matches nvim/wezterm/tmux)
 export FZF_DEFAULT_OPTS='
   --height 40%
   --layout=reverse
@@ -31,10 +31,11 @@ export FZF_DEFAULT_OPTS='
   --marker="*"
   --pointer="▶"
   --prompt="❯ "
-  --color=fg:#cdd6f4,bg:#1e1e2e,hl:#cba6f7
-  --color=fg+:#cdd6f4,bg+:#313244,hl+:#89b4fa
-  --color=info:#89b4fa,prompt:#89dceb,pointer:#89dceb
-  --color=marker:#a6e3a1,spinner:#a6e3a1,header:#a6e3a1
+  --color=fg:#DCD7BA,bg:#16161D,hl:#957FB8
+  --color=fg+:#DCD7BA,bg+:#2D4F67,hl+:#7E9CD8
+  --color=info:#7E9CD8,prompt:#7FB4CA,pointer:#7FB4CA
+  --color=marker:#98BB6C,spinner:#98BB6C,header:#98BB6C
+  --color=border:#54546D
 '
 
 # Use fd for fzf (faster than find)

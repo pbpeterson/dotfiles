@@ -12,7 +12,8 @@
 # Files that might contain sensitive data
 *.log
 
-# Neovim
+# Claude Code (project-local agent state)
+.claude/
 nvim/.claude/
 
 # History and cache files (if any)

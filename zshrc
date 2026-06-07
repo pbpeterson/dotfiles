@@ -40,6 +40,9 @@ export ASDF_DATA_DIR="${ASDF_DATA_DIR:-$HOME/.asdf}"
 # Cache Homebrew prefix for faster startup (hardcoded for Apple Silicon)
 export HOMEBREW_PREFIX="/opt/homebrew"
 
+# Silence zoxide's init-order doctor warning (init is intentionally last in zshrc)
+export _ZO_DOCTOR=0
+
 export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PNPM_HOME:$HOMEBREW_PREFIX/opt/sqlite/bin:$HOMEBREW_PREFIX/opt/postgresql@18/bin:$HOMEBREW_PREFIX/bin:$ASDF_DATA_DIR/shims:$PATH"
 
 # Homebrew SQLite (override macOS system version)
@@ -54,6 +57,11 @@ export PKG_CONFIG_PATH="$HOMEBREW_PREFIX/opt/sqlite/lib/pkgconfig"
 export ZSH="$HOME/.oh-my-zsh"
 
 ZSH_THEME="powerlevel10k/powerlevel10k"
+
+# Startup perf: skip Oh My Zsh's auto-update prompt (run `omz update` manually)
+# and its insecure-completion-dir audit (compaudit), which add ~30-40ms.
+zstyle ':omz:update' mode disabled
+export ZSH_DISABLE_COMPFIX=true
 
 # Required plugins - installation instructions:
 # fzf-tab: git clone https://github.com/Aloxaf/fzf-tab ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/fzf-tab
