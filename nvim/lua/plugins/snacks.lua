@@ -45,6 +45,16 @@ return {
             ignored = true,
             exclude = constants.exclude_patterns,
           },
+          -- <leader><leader> uses the smart source (buffers + MRU + files).
+          -- It's a separate source, so the files excludes above don't apply;
+          -- repeat them here or node_modules/dist/etc. leak into results.
+          -- filter.cwd scopes the MRU/recent list to the project, otherwise
+          -- vim.v.oldfiles floods results with files from every other repo.
+          smart = {
+            ignored = true,
+            exclude = constants.exclude_patterns,
+            filter = { cwd = true },
+          },
         },
       },
       dashboard = {
