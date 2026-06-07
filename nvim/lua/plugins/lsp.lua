@@ -65,63 +65,69 @@ return {
   },
 
   -- Conform formatter with Deno/oxfmt/Node.js auto-detection
+  -- opts is a function so require("conform.util") is deferred until conform loads
+  -- (a table literal forces conform + mason onto the startup path; ~6ms saved).
   {
     "stevearc/conform.nvim",
-    opts = {
-      formatters_by_ft = {
-        typescript = ts_formatter,
-        typescriptreact = ts_formatter,
-        javascript = ts_formatter,
-        javascriptreact = ts_formatter,
-        lua = { "stylua" },
-        json = web_formatter,
-        yaml = web_formatter,
-        markdown = web_formatter,
-        html = web_formatter,
-        css = web_formatter,
-        scss = web_formatter,
-        svelte = web_formatter,
-        vue = web_formatter,
-      },
-      formatters = {
-        -- Use prettierd (daemon version) for faster prettier formatting
-        prettier = {
-          command = "prettierd",
-          -- Ensure prettierd restarts when switching projects
-          cwd = require("conform.util").root_file({
-            ".prettierrc",
-            ".prettierrc.json",
-            ".prettierrc.yml",
-            ".prettierrc.yaml",
-            ".prettierrc.json5",
-            ".prettierrc.js",
-            ".prettierrc.cjs",
-            ".prettierrc.mjs",
-            "prettier.config.js",
-            "prettier.config.cjs",
-            "prettier.config.mjs",
-            "package.json",
-          }),
+    opts = function()
+      return {
+        formatters_by_ft = {
+          typescript = ts_formatter,
+          typescriptreact = ts_formatter,
+          javascript = ts_formatter,
+          javascriptreact = ts_formatter,
+          lua = { "stylua" },
+          json = web_formatter,
+          yaml = web_formatter,
+          markdown = web_formatter,
+          html = web_formatter,
+          css = web_formatter,
+          scss = web_formatter,
+          svelte = web_formatter,
+          vue = web_formatter,
         },
-        deno_fmt = {
-          command = "deno",
-          args = { "fmt", "-" },
-          stdin = true,
+        formatters = {
+          -- Use prettierd (daemon version) for faster prettier formatting
+          prettier = {
+            command = "prettierd",
+            -- Ensure prettierd restarts when switching projects
+            cwd = require("conform.util").root_file({
+              ".prettierrc",
+              ".prettierrc.json",
+              ".prettierrc.yml",
+              ".prettierrc.yaml",
+              ".prettierrc.json5",
+              ".prettierrc.js",
+              ".prettierrc.cjs",
+              ".prettierrc.mjs",
+              "prettier.config.js",
+              "prettier.config.cjs",
+              "prettier.config.mjs",
+              "package.json",
+            }),
+          },
+          deno_fmt = {
+            command = "deno",
+            args = { "fmt", "-" },
+            stdin = true,
+          },
+          oxfmt = {
+            command = "oxfmt",
+            args = { "--stdin-filepath", "$FILENAME" },
+            stdin = true,
+            cwd = require("conform.util").root_file({ ".oxfmtrc.json" }),
+          },
         },
-        oxfmt = {
-          command = "oxfmt",
-          args = { "--stdin-filepath", "$FILENAME" },
-          stdin = true,
-          cwd = require("conform.util").root_file({ ".oxfmtrc.json" }),
-        },
-      },
-    },
+      }
+    end,
   },
 
-  -- TailwindCSS color preview in completion menu
+  -- TailwindCSS color preview in completion menu.
+  -- Disabled: blink.cmp (not nvim-cmp) is used, so its formatter hook never runs;
+  -- this only loaded eagerly at startup for nothing.
   {
     "roobert/tailwindcss-colorizer-cmp.nvim",
-    opts = {},
+    enabled = false,
   },
 
   -- Disable snippets (LSP completions are sufficient)

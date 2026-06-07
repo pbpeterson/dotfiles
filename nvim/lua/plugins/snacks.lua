@@ -12,7 +12,12 @@ return {
 
   -- Disable unused plugins
   { "nvim-lua/plenary.nvim", enabled = false },
-  { "folke/tokyonight.nvim", lazy = true },
+  -- tokyonight is the LazyVim default theme; we use kanagawa, so drop it entirely.
+  -- Must set LazyVim's colorscheme first (below) or startup errors loading tokyonight.
+  { "folke/tokyonight.nvim", enabled = false },
+
+  -- Tell LazyVim the active colorscheme so it stops requiring tokyonight at startup
+  { "LazyVim/LazyVim", opts = { colorscheme = "kanagawa" } },
 
   {
     "folke/snacks.nvim",
@@ -25,6 +30,11 @@ return {
       },
       notifier = { enabled = true },
       input = { enabled = true },
+      styles = {
+        notification = { border = "rounded" },
+        notification_history = { border = "rounded" },
+        input = { border = "rounded" },
+      },
       picker = {
         sources = {
           explorer = {
@@ -39,6 +49,18 @@ return {
       },
       dashboard = {
         preset = {
+          header = [[
+
+      ⣀⣤⣶⣶⣦⣄⡀                            神    奈    川
+   ⢀⣴⠟⠋⠁  ⠈⠙⠻⣦⡀     ╭───────────────────────────╮
+  ⣰⡟⠁    ⢀⣀⣀⡀   ⠹⣧    │   K A N A G A W A   波    │
+ ⢠⡟    ⣰⠟⠋⠉⠙⠻⣦⡀  ⢻⡄   ╰───────────────────────────╯
+ ⣾⠁   ⣼⠏      ⠹⣧  ⢸⣷       浪 の 如 く 流 れ よ
+ ⢿⡄   ⠹⣧⡀    ⢀⣴⠏  ⣼⡿
+ ⠈⢿⣦⡀   ⠉⠛⠷⠶⠾⠛⠁ ⢀⣴⡿⠁           the great wave
+   ⠙⠻⢷⣦⣤⣄⣀⣀⣠⣤⣶⡾⠟⠋
+      ⠈⠉⠛⠛⠛⠛⠉⠁
+]],
           pick = function(cmd, opts)
             return LazyVim.pick(cmd, opts)()
           end,

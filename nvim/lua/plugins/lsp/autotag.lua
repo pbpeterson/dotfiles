@@ -3,7 +3,7 @@
 return {
   {
     "windwp/nvim-ts-autotag",
-    event = { "BufReadPre", "BufNewFile" },
+    -- ft only (no event): event would OR with ft and load on every file open
     ft = { "html", "javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "svelte" },
     opts = {
       enable_close = true,

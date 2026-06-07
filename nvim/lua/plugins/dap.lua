@@ -130,8 +130,21 @@ return {
     "rcarriga/nvim-dap-ui",
     dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio" },
     keys = {
-      { "<leader>du", function() require("dapui").toggle() end, desc = "Toggle DAP UI" },
-      { "<leader>de", function() require("dapui").eval() end, desc = "Eval", mode = { "n", "v" } },
+      {
+        "<leader>du",
+        function()
+          require("dapui").toggle()
+        end,
+        desc = "Toggle DAP UI",
+      },
+      {
+        "<leader>de",
+        function()
+          require("dapui").eval()
+        end,
+        desc = "Eval",
+        mode = { "n", "v" },
+      },
     },
     opts = {},
     config = function(_, opts)

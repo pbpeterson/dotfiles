@@ -85,7 +85,6 @@ return {
     },
   },
 
-
   -- File Icons
   {
     "echasnovski/mini.icons",
@@ -97,5 +96,4 @@ return {
       },
     },
   },
-
 }

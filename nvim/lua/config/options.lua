@@ -31,3 +31,23 @@ vim.opt.smartcase = true -- Override ignorecase if search contains capitals
 
 -- Performance: limit syntax highlighting on long lines
 vim.opt.synmaxcol = 300 -- Only highlight first 300 columns
+
+-- Global rounded borders for all floating windows (nvim 0.12 native)
+vim.o.winborder = "rounded"
+
+-- Nicer diagnostics: rounded float, custom sign icons, inline virtual text
+vim.diagnostic.config({
+  float = { border = "rounded", source = "if_many" },
+  severity_sort = true,
+  underline = true,
+  update_in_insert = false,
+  virtual_text = { spacing = 4, prefix = "●", source = "if_many" },
+  signs = {
+    text = {
+      [vim.diagnostic.severity.ERROR] = "",
+      [vim.diagnostic.severity.WARN] = "",
+      [vim.diagnostic.severity.HINT] = "",
+      [vim.diagnostic.severity.INFO] = "",
+    },
+  },
+})
