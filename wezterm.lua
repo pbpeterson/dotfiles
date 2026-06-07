@@ -24,11 +24,13 @@ config.window_frame = {
 -- but a custom color_schemes entry guarantees the exact hex values regardless of build.
 config.color_schemes = {
 	["Kanagawa Wave"] = {
-		background = "#1F1F28",
+		-- Deeper sumiInk0 background to match the Neovim editor (uniform across
+		-- terminal, tmux (transparent, inherits this), and nvim).
+		background = "#16161D",
 		foreground = "#DCD7BA",
 
 		cursor_bg = "#C8C093",
-		cursor_fg = "#1F1F28",
+		cursor_fg = "#16161D",
 		cursor_border = "#C8C093",
 
 		selection_bg = "#2D4F67",
