@@ -14,7 +14,7 @@ return {
     statementStyle = { bold = true },
     typeStyle = {},
     transparent = false, -- set true for a fully transparent background
-    dimInactive = true, -- dim non-current windows/splits
+    dimInactive = false, -- keep all windows the same background (no dimming)
     terminalColors = true, -- apply theme to :terminal
     theme = "wave",
     background = { dark = "wave", light = "lotus" },
@@ -36,12 +36,17 @@ return {
         ["@keyword.conditional"] = { italic = true },
         ["@keyword.repeat"] = { italic = true },
 
-        -- Floating windows: single elevated surface so border blends in
+        -- Uniform darker background everywhere: pull the main editor down to
+        -- the deeper sumiInk (bg_m3) so editor, explorer, floats, and dashboard
+        -- all share the same darker surface.
+        Normal = { bg = theme.ui.bg_m3 },
+        NormalNC = { bg = theme.ui.bg_m3 },
         NormalFloat = { bg = theme.ui.bg_m3 },
         FloatBorder = { bg = theme.ui.bg_m3, fg = theme.ui.bg_m3 },
         FloatTitle = { bg = theme.ui.bg_m3, fg = theme.ui.special, bold = true },
+        SignColumn = { bg = theme.ui.bg_m3 },
 
-        -- Popup menu (blink / completion) matches floats
+        -- Popup menu (blink / completion) matches the darker bg
         Pmenu = { fg = theme.ui.fg, bg = theme.ui.bg_m3 },
         PmenuSel = { fg = "NONE", bg = theme.ui.bg_p2 },
         PmenuSbar = { bg = theme.ui.bg_m1 },
