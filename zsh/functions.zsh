@@ -96,3 +96,33 @@ vpn-log() {
 vpn-down() {
   sudo pkill openvpn && echo "VPN disconnected"
 }
+
+# ============================================================================
+# Code Screenshots
+# ============================================================================
+
+# codeshot: Render a code file (or clipboard) to a PNG with the Kanagawa Wave
+# theme, matching the Neovim / WezTerm look. Extra args pass through to silicon.
+#   codeshot src/main.rs                 -> src/main.rs.png
+#   codeshot src/main.rs out.png         -> out.png
+#   codeshot src/main.rs --to-clipboard  -> copies PNG to clipboard
+#   pbpaste | codeshot -l ts             -> render clipboard as TypeScript
+codeshot() {
+  local theme="$HOME/Library/Application Support/silicon/themes/kanagawa-wave.tmTheme"
+  if [[ ! -f "$theme" ]]; then
+    echo "codeshot: theme not found at $theme" >&2
+    return 1
+  fi
+
+  local input="$1" output args
+  if [[ -n "$input" && -f "$input" ]]; then
+    shift
+    output="${1:-${input}.png}"
+    [[ -n "$1" && "$1" != -* ]] && shift
+    args=(--output "$output" "$@")
+    silicon "$input" --theme "$theme" --background "#16161D" "${args[@]}"
+  else
+    # No file given: read code from stdin (e.g. piped from pbpaste)
+    silicon --theme "$theme" --background "#16161D" "$@"
+  fi
+}
