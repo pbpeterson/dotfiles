@@ -60,10 +60,21 @@ config.color_schemes = {
 }
 config.color_scheme = "Kanagawa Wave"
 
-config.window_decorations = "NONE"
+-- RESIZE not NONE: same look (no title bar), but with NONE macOS can't resize
+-- the window at all -- maximize() on startup silently fails (wezterm #3299).
+config.window_decorations = "RESIZE"
 config.enable_tab_bar = false
-config.initial_cols = 132
-config.initial_rows = 38
+
+-- Start in WezTerm's borderless fullscreen (native_macos_fullscreen_mode off:
+-- no separate macOS Space, no app-switch workspace animation). Rows/cols always
+-- fit the real screen; the old fixed 132x38 at font 18 was taller than the
+-- display, clipping the bottom rows -- tmux statusline / Claude Code input box
+-- drew off-screen and looked like rendering corruption. Alt+Enter toggles.
+config.native_macos_fullscreen_mode = false
+wezterm.on("gui-startup", function(cmd)
+	local _, _, window = wezterm.mux.spawn_window(cmd or {})
+	window:gui_window():toggle_fullscreen()
+end)
 config.enable_kitty_graphics = true
 
 -- Optional subtle polish (uncomment to enable):
@@ -76,6 +87,8 @@ config.cursor_blink_rate = 0
 
 -- Performance
 config.front_end = "WebGpu"
+config.webgpu_power_preference = "HighPerformance"
+config.max_fps = 120 -- default 60; smoother scroll for fast TUI output (Claude Code)
 
 -- Usability
 config.warn_about_missing_glyphs = false
