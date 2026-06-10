@@ -43,7 +43,7 @@ export HOMEBREW_PREFIX="/opt/homebrew"
 # Silence zoxide's init-order doctor warning (init is intentionally last in zshrc)
 export _ZO_DOCTOR=0
 
-export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PNPM_HOME:$HOMEBREW_PREFIX/opt/sqlite/bin:$HOMEBREW_PREFIX/opt/postgresql@18/bin:$HOMEBREW_PREFIX/bin:$ASDF_DATA_DIR/shims:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PNPM_HOME:$HOMEBREW_PREFIX/opt/sqlite/bin:$HOMEBREW_PREFIX/opt/postgresql@18/bin:$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/opt/openvpn/sbin:$ASDF_DATA_DIR/shims:$PATH"
 
 # Homebrew SQLite (override macOS system version)
 export LDFLAGS="-L$HOMEBREW_PREFIX/opt/sqlite/lib"
@@ -66,8 +66,14 @@ export ZSH_DISABLE_COMPFIX=true
 # Required plugins - installation instructions:
 # fzf-tab: git clone https://github.com/Aloxaf/fzf-tab ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/fzf-tab
 # zsh-autosuggestions: git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-# zsh-syntax-highlighting: git clone https://github.com/zsh-users/zsh-syntax-highlighting ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-plugins=(fzf-tab git zsh-autosuggestions zsh-syntax-highlighting)
+# fast-syntax-highlighting: git clone https://github.com/zdharma-continuum/fast-syntax-highlighting ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/fast-syntax-highlighting
+# Rebind autosuggest widgets once instead of on every prompt; noticeably lower
+# per-keystroke latency in long-lived shells.
+ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+# Skip autosuggestions for very long buffers (e.g. big pastes into the prompt)
+ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=40
+
+plugins=(fzf-tab git zsh-autosuggestions fast-syntax-highlighting)
 
 # Load Oh My Zsh with error handling
 if [[ -f $ZSH/oh-my-zsh.sh ]]; then
@@ -98,7 +104,6 @@ setopt HIST_FIND_NO_DUPS      # Don't show duplicates when searching history
 # Purpose: Configure shell behavior for better interactive experience
 # ============================================================================
 setopt AUTO_CD                # Type directory name to cd into it
-setopt CORRECT                # Spell correction for commands
 setopt INTERACTIVE_COMMENTS   # Allow comments in interactive shell
 setopt NO_BEEP                # Disable beeping
 setopt EXTENDED_GLOB          # Extended globbing capabilities
@@ -153,6 +158,10 @@ hash -d desktop=~/Desktop
 # Purpose: Enhanced tab completion with fuzzy finding and preview windows
 # ============================================================================
 
+# Cache slow completion results (brew, git, npm completions etc.)
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh/zcompcache"
+
 # Enable completion for options/flags
 zstyle ':completion:*' complete-options true
 
@@ -199,7 +208,6 @@ done
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-export PATH="/opt/homebrew/opt/openvpn/sbin:$PATH"
 
 # ============================================================================
 # Zoxide (smarter cd) — MUST be last: its doctor check requires that no other
