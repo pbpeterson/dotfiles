@@ -65,15 +65,23 @@ config.color_scheme = "Kanagawa Wave"
 config.window_decorations = "RESIZE"
 config.enable_tab_bar = false
 
--- Start in WezTerm's borderless fullscreen (native_macos_fullscreen_mode off:
--- no separate macOS Space, no app-switch workspace animation). Rows/cols always
--- fit the real screen; the old fixed 132x38 at font 18 was taller than the
--- display, clipping the bottom rows -- tmux statusline / Claude Code input box
--- drew off-screen and looked like rendering corruption. Alt+Enter toggles.
+-- Fill the screen with no fullscreen toggle and no animation: stays in the current
+-- macOS Space (borderless, no native-fullscreen Space slide). Pre-size near-full so
+-- the first painted frame is already screen-filling (no small-window flash), then
+-- set_inner_size() to the exact screen pixels -- an instant resize, NOT the macOS
+-- maximize animation. screens().active reports physical pixels; MENUBAR subtracts the
+-- menu bar / notch so the bottom doesn't run off-screen. Alt+Enter still toggles true
+-- fullscreen on demand.
 config.native_macos_fullscreen_mode = false
+config.initial_cols = 132
+config.initial_rows = 40
 wezterm.on("gui-startup", function(cmd)
-	local _, _, window = wezterm.mux.spawn_window(cmd or {})
-	window:gui_window():toggle_fullscreen()
+	local screen = wezterm.gui.screens().active
+	local args = cmd or {}
+	args.position = { x = screen.x, y = screen.y, origin = "ScreenCoordinateSystem" }
+	local _, _, window = wezterm.mux.spawn_window(args)
+	local MENUBAR = 50 -- raise if bottom rows clip off-screen; lower to close a bottom gap
+	window:gui_window():set_inner_size(screen.width, screen.height - MENUBAR)
 end)
 config.enable_kitty_graphics = true
 
