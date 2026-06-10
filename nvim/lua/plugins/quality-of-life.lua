@@ -3,6 +3,24 @@ return {
   -- Disable indent-blankline (replaced by snacks.indent)
   { "lukas-reineke/indent-blankline.nvim", enabled = false },
 
+  -- Seamless C-hjkl navigation across nvim splits and tmux panes
+  -- (tmux side: christoomey/vim-tmux-navigator in tmux.conf plugin list)
+  {
+    "christoomey/vim-tmux-navigator",
+    cmd = {
+      "TmuxNavigateLeft",
+      "TmuxNavigateDown",
+      "TmuxNavigateUp",
+      "TmuxNavigateRight",
+    },
+    keys = {
+      { "<C-h>", "<cmd>TmuxNavigateLeft<cr>", desc = "Navigate left (tmux-aware)" },
+      { "<C-j>", "<cmd>TmuxNavigateDown<cr>", desc = "Navigate down (tmux-aware)" },
+      { "<C-k>", "<cmd>TmuxNavigateUp<cr>", desc = "Navigate up (tmux-aware)" },
+      { "<C-l>", "<cmd>TmuxNavigateRight<cr>", desc = "Navigate right (tmux-aware)" },
+    },
+  },
+
   -- Twilight: Dim inactive portions of the code
   {
     "folke/twilight.nvim",
