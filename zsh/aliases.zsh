@@ -15,7 +15,6 @@ alias l="lsd -l"
 # Modern Replacements
 # ============================================================================
 alias cat="bat"
-alias find="fd"
 alias du="dust"
 alias top="btop"
 alias ps="procs"  # nicer ps; use `command ps` for scripting

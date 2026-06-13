@@ -62,6 +62,9 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # and its insecure-completion-dir audit (compaudit), which add ~30-40ms.
 zstyle ':omz:update' mode disabled
 export ZSH_DISABLE_COMPFIX=true
+# Point OMZ's own compinit at the XDG cache dump (OMZ runs compinit for us;
+# only set if unset so OMZ's default ~/.zcompdump-* isn't used).
+export ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/zcompdump-${ZSH_VERSION}"
 
 # Required plugins - installation instructions:
 # fzf-tab: git clone https://github.com/Aloxaf/fzf-tab ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/fzf-tab
@@ -74,6 +77,10 @@ ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=40
 
 plugins=(fzf-tab git zsh-autosuggestions fast-syntax-highlighting)
+
+# Completion search paths must be in fpath BEFORE OMZ runs compinit.
+FPATH="$HOMEBREW_PREFIX/share/zsh/site-functions:$FPATH"
+fpath=($HOME/.zsh/completions $fpath)
 
 # Load Oh My Zsh with error handling
 if [[ -f $ZSH/oh-my-zsh.sh ]]; then
@@ -117,20 +124,8 @@ bindkey '^L' clear-screen       # Ctrl+L to clear terminal
 # Completions
 # Purpose: Enable and optimize tab completion with caching for faster startup
 # ============================================================================
-# Add Homebrew completions (using cached prefix)
-FPATH="$HOMEBREW_PREFIX/share/zsh/site-functions:$FPATH"
-
-# Add deno completions to search path
-fpath=($HOME/.zsh/completions $fpath)
-
-# Optimized compinit with caching (only rebuild once per day)
-autoload -Uz compinit
-local compinit_dump="$XDG_CACHE_HOME/zsh/zcompdump-${ZSH_VERSION}"
-if [[ -n $compinit_dump(#qN.mh+24) ]]; then
-  compinit -d "$compinit_dump"
-else
-  compinit -C -d "$compinit_dump"
-fi
+# compinit is handled by Oh My Zsh (it autoloads + compiles the dump at
+# $ZSH_COMPDUMP). fpath entries are added above, before OMZ is sourced.
 
 # ============================================================================
 # Environment Variables
@@ -149,9 +144,9 @@ fi
 # Directory Shortcuts (use with ~name)
 # ============================================================================
 hash -d projects=~/Projects 2>/dev/null
-hash -d downloads=~/Downloads
-hash -d config=~/.config
-hash -d desktop=~/Desktop
+hash -d downloads=~/Downloads 2>/dev/null
+hash -d config=~/.config 2>/dev/null
+hash -d desktop=~/Desktop 2>/dev/null
 
 # ============================================================================
 # fzf-tab Configuration
@@ -188,7 +183,7 @@ zstyle ':fzf-tab:*' switch-group '<' '>'
 # ============================================================================
 
 # Source modular config files
-local config_files=(
+config_files=(
   "$HOME/.zsh/aliases.zsh"
   "$HOME/.zsh/functions.zsh"
   "$HOME/.zsh/tools.zsh"
