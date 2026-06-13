@@ -17,8 +17,9 @@ map("n", "N", "Nzzzv", { desc = "Previous search result and center" })
 map("n", "*", "*zzzv", { desc = "Search word forward and center" })
 map("n", "#", "#zzzv", { desc = "Search word backward and center" })
 
--- Find files, most-recent-first: merges open buffers, MRU, and project files,
--- frecency-ranked even on an empty query (smart source, sort_empty = true).
+-- Find files, most-recent-first: merges open buffers, MRU, and project files.
+-- On an empty query the list is pure recency (smart source: frecency off, so the
+-- newest-opened file is always on top); start typing to fuzzy-find any project file.
 map("n", "<leader><leader>", function()
   Snacks.picker.smart()
 end, { desc = "Find Files (smart / recent)" })

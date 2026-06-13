@@ -54,6 +54,21 @@ return {
             ignored = true,
             exclude = constants.exclude_patterns,
             filter = { cwd = true },
+            -- Show MOST-RECENT files first, not lifetime favorites.
+            -- The multi finder emits items already MRU-ordered (open buffers by
+            -- lastused, then vim.v.oldfiles), exposed as `idx` ascending.
+            -- On an empty query every item gets the same base score (1000), so
+            -- with frecency OFF the `idx` tiebreak decides == pure recency.
+            -- With frecency ON (snacks' default) each item gets a per-file
+            -- bonus of up to ~7.6 that NEVER ties, so a long-time favorite like
+            -- package.json pins to the top and the list looks frozen regardless
+            -- of what you just opened. Turning frecency off is what makes this a
+            -- real MRU list. sort_empty keeps the list ordered on empty query.
+            sort = { fields = { "score:desc", "idx" } },
+            matcher = {
+              frecency = false, -- empty-query order = recency (idx), not frequency
+              sort_empty = true, -- rank even on empty query
+            },
           },
         },
       },

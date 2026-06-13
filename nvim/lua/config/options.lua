@@ -29,6 +29,14 @@ vim.opt.undolevels = 2000 -- Maximum number of changes that can be undone
 vim.opt.ignorecase = true -- Ignore case when searching
 vim.opt.smartcase = true -- Override ignorecase if search contains capitals
 
+-- Recent-files persistence (powers the smart picker's MRU tail).
+-- Default shada keeps only '100 oldfiles globally; across many repos a single
+-- project's recent files fall off that list fast, starving the picker. Bump the
+-- oldfiles cap so vim.v.oldfiles holds a deep enough history per project.
+-- Mirrors Neovim's default (!,'100,<50,s10,h,r/tmp/,r/private/) but raises the
+-- oldfiles cap from 100 to 1000; r/ entries keep temp dirs out of the MRU list.
+vim.opt.shada = { "!", "'1000", "<50", "s10", "h", "r/tmp/", "r/private/" }
+
 -- Performance: limit syntax highlighting on long lines
 vim.opt.synmaxcol = 300 -- Only highlight first 300 columns
 
