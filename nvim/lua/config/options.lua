@@ -15,7 +15,7 @@ vim.opt.showtabline = 0 -- Hide the tabline (buffer tabs)
 -- Performance optimizations
 vim.opt.updatetime = 250 -- Faster completion (default is 4000ms)
 vim.opt.timeoutlen = 300 -- Faster key sequence completion
-vim.opt.redrawtime = 800 -- Time in milliseconds for redrawing the display
+vim.opt.redrawtime = 1500 -- Time in milliseconds for redrawing the display
 vim.opt.ttimeoutlen = 10 -- Time in milliseconds to wait for a key code sequence
 
 -- Swap and backup settings for better performance

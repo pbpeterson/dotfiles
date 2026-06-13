@@ -52,7 +52,7 @@ M.vtsls_specific = {
   {
     "gD",
     function()
-      local params = vim.lsp.util.make_position_params()
+      local params = vim.lsp.util.make_position_params(0, (vim.lsp.get_clients({ bufnr = 0 })[1] or {}).offset_encoding)
       LazyVim.lsp.execute({
         command = "typescript.goToSourceDefinition",
         arguments = { params.textDocument.uri, params.position },
@@ -104,7 +104,7 @@ M.vtsls_specific = {
 -- Deno-specific keymaps
 M.deno_specific = {
   {
-    "<leader>dc",
+    "<leader>cC",
     function()
       vim.lsp.buf.code_action({
         apply = true,
