@@ -112,7 +112,14 @@ return {
             stdin = true,
           },
           oxfmt = {
-            command = "oxfmt",
+            -- Prefer the project-local oxfmt (pinned in package.json) over the
+            -- global Mason one, so format-on-save matches `pnpm format` exactly.
+            -- A version skew (Mason 0.55 vs project 0.56) reformats files
+            -- differently otherwise.
+            command = require("conform.util").find_executable(
+              { "node_modules/.bin/oxfmt" },
+              "oxfmt"
+            ),
             args = { "--stdin-filepath", "$FILENAME" },
             stdin = true,
             cwd = require("conform.util").root_file({ ".oxfmtrc.json" }),
