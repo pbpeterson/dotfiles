@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DIR=$({ echo "$HOME/dotfiles"; fd --type d --max-depth 1 . "$HOME/guidance" "$HOME/studies" "$HOME/projects"; } | fzf --prompt="Project dir: ")
+# Parent dir holding grouped projects (e.g. ~/code/wekoos/crm).
+# Override per-machine: export TMUX_PROJECT_ROOT="$HOME/whatever" in a non-committed rc.
+ROOT="${TMUX_PROJECT_ROOT:-$HOME/code}"
+
+# List dotfiles plus the grouped projects (parent/group/repo).
+DIR=$({ echo "$HOME/dotfiles"; [ -d "$ROOT" ] && fd --type d --min-depth 2 --max-depth 2 . "$ROOT"; } \
+  | fzf --prompt="Project dir: ")
 [ -z "$DIR" ] && exit 0
 
 DEFAULT_NAME=$(basename "$DIR")
