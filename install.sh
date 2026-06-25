@@ -196,6 +196,17 @@ setup_symlinks() {
     mkdir -p "$HOME/.config"
     ln -sfn "$DOTFILES_DIR/nvim" "$HOME/.config/nvim"
     print_success "Neovim config linked"
+
+    # WezTerm
+    backup_if_exists "$HOME/.wezterm.lua"
+    ln -sf "$DOTFILES_DIR/wezterm.lua" "$HOME/.wezterm.lua"
+    print_success "WezTerm config linked"
+
+    # Kitty
+    backup_if_exists "$HOME/.config/kitty/kitty.conf"
+    mkdir -p "$HOME/.config/kitty"
+    ln -sf "$DOTFILES_DIR/kitty.conf" "$HOME/.config/kitty/kitty.conf"
+    print_success "Kitty config linked"
 }
 
 # Install Tmux Plugin Manager

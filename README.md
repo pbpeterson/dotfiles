@@ -25,19 +25,23 @@ Personal configuration files for Zsh, Tmux, and Neovim.
 - **Code quality** - Formatting and linting configured
 - **Quality of life** - Custom keymaps and enhancements
 
+### Terminal Emulators
+- **WezTerm** - GPU-accelerated terminal (`wezterm.lua`)
+- **Kitty** - Fast, feature-rich terminal (`kitty.conf`)
+
 ## Quick Start
 
 ### One-line Install
 
 ```bash
-git clone https://github.com/yourusername/dotfiles.git ~/dotfiles && cd ~/dotfiles && ./install.sh
+git clone https://github.com/pbpeterson/dotfiles.git ~/dotfiles && cd ~/dotfiles && ./install.sh
 ```
 
 ### Manual Installation
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/dotfiles.git ~/dotfiles
+git clone https://github.com/pbpeterson/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ```
 
@@ -101,11 +105,13 @@ dotfiles/
 ├── tmux/               # Tmux scripts and plugins
 │   ├── scripts/        # Custom scripts
 │   └── plugins/        # Tmux plugins (git cloned)
-└── nvim/               # Neovim configuration
-    ├── init.lua        # Entry point
-    └── lua/            # Lua configs
-        ├── config/     # Core config
-        └── plugins/    # Plugin configs
+├── nvim/               # Neovim configuration
+│   ├── init.lua        # Entry point
+│   └── lua/            # Lua configs
+│       ├── config/     # Core config
+│       └── plugins/    # Plugin configs
+├── wezterm.lua         # WezTerm configuration
+└── kitty.conf          # Kitty configuration
 ```
 
 ## Key Bindings
