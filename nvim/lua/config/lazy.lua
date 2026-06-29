@@ -32,9 +32,9 @@ require("lazy").setup({
   },
   install = { colorscheme = { "kanagawa", "habamax" } },
   checker = {
-    -- Disabled: with notify=false the periodic check spawned a git process per
-    -- plugin in the background for nothing. Run :Lazy check manually instead.
-    enabled = false,
+    -- Check for plugin updates so :Lazy shows pending updates. notify=false keeps
+    -- it quiet (no startup popup); the update list still populates.
+    enabled = true,
     notify = false,
   },
   performance = {
