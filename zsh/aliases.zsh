@@ -86,6 +86,11 @@ tmux() {
 
 
 # ============================================================================
+# Claude Code
+# ============================================================================
+alias yolo="claude --dangerously-skip-permissions"  # skips all permission prompts
+
+# ============================================================================
 # Caffeinate
 # ============================================================================
 alias caf-stop='launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.caffeinate.plist'
