@@ -129,6 +129,7 @@ dotfiles/
 - `prefix + hjkl` - Navigate panes
 - `Alt + hjkl` - Navigate panes (no prefix)
 - `prefix + HJKL` - Resize panes
+- `prefix + a` - List running AI agents across sessions
 - `prefix + r` - Reload config
 - `prefix + c` - New window with custom name
 

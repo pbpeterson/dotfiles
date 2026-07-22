@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Take one process snapshot up front. Besides being faster than repeatedly
+# invoking ps, this avoids pgrep omitting processes from another login context.
+processes="$(ps -Ao pid=,ppid=,comm=)"
+
+# Find the nearest supported agent running below a tmux pane's shell.
+find_agent() {
+  local parent_pid="$1"
+
+  awk -v root="$parent_pid" '
+    function agent_name(command) {
+      sub(/^.*\//, "", command)
+
+      if (command == "claude" || command == "claude-code") return "Claude"
+      if (command == "codex" || command == "codex-cli") return "Codex"
+      return ""
+    }
+
+    function distance_from_root(pid, distance) {
+      distance = 0
+      while (pid in parent && pid != 0) {
+        if (pid == root) return distance
+        pid = parent[pid]
+        distance++
+      }
+      return -1
+    }
+
+    {
+      parent[$1] = $2
+      command[$1] = $3
+    }
+
+    END {
+      best_distance = -1
+
+      for (pid in command) {
+        name = agent_name(command[pid])
+        if (name == "") continue
+
+        distance = distance_from_root(pid)
+        if (distance >= 0 && (best_distance == -1 || distance < best_distance)) {
+          best_distance = distance
+          best_name = name
+        }
+      }
+
+      if (best_distance != -1) print best_name
+      else exit 1
+    }
+  ' <<< "$processes"
+}
+
+sanitize_field() {
+  local value="$1"
+  value="${value//$'\t'/ }"
+  value="${value//$'\n'/ }"
+  printf '%s' "$value"
+}
+
+rows=()
+
+while IFS=$'\t' read -r pane_id session_name window_index window_name pane_title pane_path pane_pid; do
+  agent_name="$(find_agent "$pane_pid" || true)"
+  [[ -n "$agent_name" ]] || continue
+
+  session_name="$(sanitize_field "$session_name")"
+  window_name="$(sanitize_field "$window_name")"
+  pane_title="$(sanitize_field "$pane_title")"
+  pane_path="$(sanitize_field "$pane_path")"
+
+  # Row schema: agent, session, window, task, directory, hidden pane ID.
+  rows+=("$agent_name"$'\t'"$session_name"$'\t'"$window_index:$window_name"$'\t'"$pane_title"$'\t'"$pane_path"$'\t'"$pane_id")
+done < <(
+  tmux list-panes -a -F $'#{pane_id}\t#{session_name}\t#{window_index}\t#{window_name}\t#{pane_title}\t#{pane_current_path}\t#{pane_pid}'
+)
+
+if [[ "${1:-}" == "--list" ]]; then
+  if ((${#rows[@]} > 0)); then
+    printf '%s\n' "${rows[@]}"
+  fi
+  exit 0
+fi
+
+if ((${#rows[@]} == 0)); then
+  tmux display-message "No running agents found"
+  exit 0
+fi
+
+if ! command -v fzf >/dev/null 2>&1; then
+  tmux display-message "tmux-agents requires fzf"
+  exit 1
+fi
+
+selected="$({ printf '%s\n' "${rows[@]}"; } | fzf \
+  --delimiter=$'\t' \
+  --with-nth=1,2,3,4,5 \
+  --prompt='Agent: ' \
+  --header=$'AGENT\tSESSION\tWINDOW\tTASK\tDIRECTORY' \
+  --layout=reverse \
+  --no-multi \
+  --preview='tmux capture-pane -ep -t {6} -S -200' \
+  --preview-window='down,65%,border-top' \
+  --border)" || exit 0
+
+IFS=$'\t' read -r _agent_name session_name _window _title _path pane_id <<< "$selected"
+
+# Select the destination before switching so the chosen pane is immediately visible.
+tmux select-window -t "$pane_id"
+tmux select-pane -t "$pane_id"
+tmux switch-client -t "$session_name"
