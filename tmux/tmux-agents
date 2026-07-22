@@ -60,7 +60,89 @@ sanitize_field() {
   printf '%s' "$value"
 }
 
-rows=()
+agent_status() {
+  local pane_id="$1"
+  local recent_output
+
+  recent_output="$(tmux capture-pane -p -t "$pane_id" 2>/dev/null || true)"
+
+  printf '%s\n' "$recent_output" | tail -30 | awk '
+    {
+      line = tolower($0)
+
+      if (line ~ /do you want to proceed|would you like to (run|execute)|waiting for (approval|input)|permission (required|needed)|approve (this|the)|press enter to confirm|allow (this|the) (command|action)/) {
+        status = "blocked"
+      }
+      if (line ~ /esc to interrupt|ctrl\+c to interrupt|esc to stop/) {
+        status = "working"
+      }
+      if (line ~ /worked for|churned for|crunched for|baked for|completed in|task complete/) {
+        status = "done"
+      }
+      if (line ~ /interrupted|cancelled|canceled|stopped by user|what should .* do instead/) {
+        status = "idle"
+      }
+    }
+
+    END {
+      if (status == "") status = "idle"
+      print status
+    }
+  '
+}
+
+tmux_color() {
+  local color_name="$1"
+  tmux display-message -p "#{$color_name}" 2>/dev/null || true
+}
+
+ansi_fg() {
+  local hex="$1"
+
+  if [[ ! "$hex" =~ ^#[[:xdigit:]]{6}$ ]]; then
+    printf '\033[39m'
+    return
+  fi
+
+  hex="${hex#\#}"
+  printf '\033[38;2;%d;%d;%dm' \
+    "$((16#${hex:0:2}))" \
+    "$((16#${hex:2:2}))" \
+    "$((16#${hex:4:2}))"
+}
+
+readonly RESET=$'\033[0m'
+readonly BOLD=$'\033[1m'
+readonly COLOR_BLUE="$(tmux_color KANA_BLUE)"
+readonly COLOR_LAVENDER="$(tmux_color KANA_LAVENDER)"
+readonly COLOR_VIOLET="$(tmux_color KANA_VIOLET)"
+readonly COLOR_GREEN="$(tmux_color KANA_GREEN)"
+readonly COLOR_YELLOW="$(tmux_color KANA_YELLOW)"
+readonly COLOR_RED="$(tmux_color KANA_RED)"
+readonly COLOR_TEXT="$(tmux_color KANA_TEXT)"
+readonly COLOR_SUBTEXT="$(tmux_color KANA_SUBTEXT)"
+readonly COLOR_GRAY="$(tmux_color KANA_GRAY)"
+readonly COLOR_OVERLAY="$(tmux_color KANA_OVERLAY)"
+readonly COLOR_SELECTION="$(tmux_color KANA_SELECTION)"
+
+readonly BLUE="$(ansi_fg "$COLOR_BLUE")"
+readonly VIOLET="$(ansi_fg "$COLOR_VIOLET")"
+readonly GREEN="$(ansi_fg "$COLOR_GREEN")"
+readonly YELLOW="$(ansi_fg "$COLOR_YELLOW")"
+readonly RED="$(ansi_fg "$COLOR_RED")"
+readonly TEXT="$(ansi_fg "$COLOR_TEXT")"
+readonly MUTED="$(ansi_fg "$COLOR_GRAY")"
+
+readonly FZF_COLORS="bg:-1,bg+:$COLOR_SELECTION,fg:$COLOR_TEXT,fg+:$COLOR_TEXT,hl:$COLOR_BLUE,hl+:$COLOR_LAVENDER,info:$COLOR_GRAY,prompt:$COLOR_BLUE,pointer:$COLOR_BLUE,marker:$COLOR_GREEN,spinner:$COLOR_YELLOW,header:$COLOR_GRAY,border:$COLOR_OVERLAY,label:$COLOR_SUBTEXT,gutter:-1,query:$COLOR_TEXT"
+
+readonly FIELD_DISPLAY=1
+readonly FIELD_SESSION=2
+readonly FIELD_AGENT=3
+readonly FIELD_TITLE=4
+readonly FIELD_PATH=5
+readonly FIELD_PANE=6
+
+finder_items=()
 
 while IFS=$'\t' read -r pane_id session_name window_index window_name pane_title pane_path pane_pid; do
   agent_name="$(find_agent "$pane_pid" || true)"
@@ -71,20 +153,46 @@ while IFS=$'\t' read -r pane_id session_name window_index window_name pane_title
   pane_title="$(sanitize_field "$pane_title")"
   pane_path="$(sanitize_field "$pane_path")"
 
-  # Row schema: agent, session, window, task, directory, hidden pane ID.
-  rows+=("$agent_name"$'\t'"$session_name"$'\t'"$window_index:$window_name"$'\t'"$pane_title"$'\t'"$pane_path"$'\t'"$pane_id")
+  status="$(agent_status "$pane_id")"
+  case "$status" in
+    working)
+      status_icon="∴"
+      status_color="$YELLOW"
+      ;;
+    blocked)
+      status_icon="⊙"
+      status_color="$RED"
+      ;;
+    done)
+      status_icon="●"
+      status_color="$BLUE"
+      ;;
+    idle)
+      status_icon="✓"
+      status_color="$GREEN"
+      ;;
+  esac
+
+  group_header="${MUTED}space${RESET} ${BLUE}${BOLD}${session_name}${RESET}"$'\n'
+
+  display="${group_header}${status_color}${BOLD}${status_icon}${RESET} ${TEXT}${window_index}:${window_name}${RESET}"$'\n'
+  display+="  ${status_color}${status}${RESET} ${MUTED}·${RESET} ${VIOLET}${agent_name}${RESET}"$'\n'
+  display+="  ${TEXT}${pane_title}${RESET}"
+
+  # Search fields stay plain; only the first field is rendered by fzf.
+  finder_items+=("$display"$'\t'"$session_name"$'\t'"$agent_name"$'\t'"$pane_title"$'\t'"$pane_path"$'\t'"$pane_id")
 done < <(
   tmux list-panes -a -F $'#{pane_id}\t#{session_name}\t#{window_index}\t#{window_name}\t#{pane_title}\t#{pane_current_path}\t#{pane_pid}'
 )
 
-if [[ "${1:-}" == "--list" ]]; then
-  if ((${#rows[@]} > 0)); then
-    printf '%s\n' "${rows[@]}"
+if [[ "${1:-}" == "--items" ]]; then
+  if ((${#finder_items[@]} > 0)); then
+    printf '%s\0' "${finder_items[@]}"
   fi
   exit 0
 fi
 
-if ((${#rows[@]} == 0)); then
+if ((${#finder_items[@]} == 0)); then
   tmux display-message "No running agents found"
   exit 0
 fi
@@ -94,18 +202,89 @@ if ! command -v fzf >/dev/null 2>&1; then
   exit 1
 fi
 
-selected="$({ printf '%s\n' "${rows[@]}"; } | fzf \
+if ! command -v curl >/dev/null 2>&1; then
+  tmux display-message "tmux-agents requires curl for the live preview"
+  exit 1
+fi
+
+printf -v reload_command '%q --items' "$0"
+dashboard_refresh_action="reload($reload_command)+refresh-preview"
+
+live_dir="$(mktemp -d "${TMPDIR:-/tmp}/tmux-agents.XXXXXX")"
+live_socket="$live_dir/fzf.sock"
+refresh_pid=""
+
+cleanup() {
+  if [[ -n "$refresh_pid" ]]; then
+    refresh_parent="$(ps -p "$refresh_pid" -o ppid= 2>/dev/null | tr -d ' ' || true)"
+    if [[ "$refresh_parent" == "$$" ]]; then
+      kill "$refresh_pid" 2>/dev/null || true
+    fi
+    wait "$refresh_pid" 2>/dev/null || true
+  fi
+  unlink "$live_socket" 2>/dev/null || true
+  rmdir "$live_dir" 2>/dev/null || true
+}
+trap cleanup EXIT
+
+run_dashboard_refresh_loop() {
+  local refresh_count=0
+  local socket_action
+
+  while [[ ! -S "$live_socket" ]]; do
+    sleep 0.1
+  done
+
+  while [[ -S "$live_socket" ]]; do
+    socket_action='refresh-preview'
+    if ((refresh_count % 2 == 1)); then
+      socket_action="$dashboard_refresh_action"
+    fi
+
+    curl --silent --show-error --unix-socket "$live_socket" \
+      -X POST http://localhost --data-binary "$socket_action" >/dev/null 2>&1 || true
+    refresh_count=$((refresh_count + 1))
+    sleep 1
+  done
+}
+
+run_dashboard_refresh_loop &
+refresh_pid=$!
+
+selected="$({ printf '%s\0' "${finder_items[@]}"; } | fzf \
+  --read0 \
+  --ansi \
   --delimiter=$'\t' \
-  --with-nth=1,2,3,4,5 \
-  --prompt='Agent: ' \
-  --header=$'AGENT\tSESSION\tWINDOW\tTASK\tDIRECTORY' \
+  --with-nth="$FIELD_DISPLAY" \
+  --nth="$FIELD_DISPLAY,$FIELD_SESSION,$FIELD_AGENT,$FIELD_TITLE,$FIELD_PATH" \
+  --accept-nth="$FIELD_PANE" \
+  --id-nth="$FIELD_PANE" \
+  --track \
+  --no-sort \
   --layout=reverse \
   --no-multi \
-  --preview='tmux capture-pane -ep -t {6} -S -200' \
-  --preview-window='down,65%,border-top' \
-  --border)" || exit 0
+  --multi-line \
+  --gap=1 \
+  --wrap=word \
+  --no-scrollbar \
+  --pointer='▌' \
+  --gutter=' ' \
+  --prompt='⌕  ' \
+  --ghost='filter by session, agent, or task' \
+  --header='↑↓ navigate  ·  enter open  ·  ctrl-r refresh  ·  esc close' \
+  --info='inline-right' \
+  --style='full:rounded' \
+  --list-label=' agents · grouped by session ' \
+  --input-label=' search ' \
+  --preview-label=' live pane ' \
+  --preview="tmux capture-pane -ep -t {$FIELD_PANE} -S -250" \
+  --preview-window='right,68%,border-rounded' \
+  --bind="ctrl-r:$dashboard_refresh_action" \
+  --listen-unsafe="$live_socket" \
+  --color="$FZF_COLORS")" || exit 0
 
-IFS=$'\t' read -r _agent_name session_name _window _title _path pane_id <<< "$selected"
+pane_id="${selected%%$'\n'*}"
+session_name="$(tmux display-message -p -t "$pane_id" '#{session_name}')"
 
 # Select the destination before switching so the chosen pane is immediately visible.
 tmux select-window -t "$pane_id"
