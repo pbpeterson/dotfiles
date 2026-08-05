@@ -36,6 +36,8 @@ typeset -U PATH fpath  # Ensures no duplicate entries
 
 export PNPM_HOME="$HOME/Library/pnpm"
 export ASDF_DATA_DIR="${ASDF_DATA_DIR:-$HOME/.asdf}"
+# Go binaries (go install drops here; GOPATH defaults to ~/go)
+export GOBIN="$HOME/go/bin"
 
 # Cache Homebrew prefix for faster startup (hardcoded for Apple Silicon)
 export HOMEBREW_PREFIX="/opt/homebrew"
@@ -43,7 +45,7 @@ export HOMEBREW_PREFIX="/opt/homebrew"
 # Silence zoxide's init-order doctor warning (init is intentionally last in zshrc)
 export _ZO_DOCTOR=0
 
-export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PNPM_HOME:$HOMEBREW_PREFIX/opt/sqlite/bin:$HOMEBREW_PREFIX/opt/postgresql@18/bin:$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/opt/openvpn/sbin:$ASDF_DATA_DIR/shims:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PNPM_HOME:$GOBIN:$HOMEBREW_PREFIX/opt/sqlite/bin:$HOMEBREW_PREFIX/opt/postgresql@18/bin:$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/opt/openvpn/sbin:$ASDF_DATA_DIR/shims:$PATH"
 
 # Homebrew SQLite (override macOS system version)
 export LDFLAGS="-L$HOMEBREW_PREFIX/opt/sqlite/lib"
@@ -211,3 +213,8 @@ done
 _cached_eval zoxide "zoxide init zsh"
 alias cd="z"
 
+
+alias nv="NVIM_APPNAME=nvim_native nvim"
+
+# Update LSP servers/formatters/linters/DAP (ex-mason, now brew + npm + GitHub)
+alias lspup="$HOME/dotfiles/scripts/install-lsp-tools.sh"
