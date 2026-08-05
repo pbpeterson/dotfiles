@@ -1,6 +1,7 @@
--- LSP Configuration
--- Central configuration for Language Server Protocol
--- Loads individual LSP configs from lua/plugins/lsp/ directory
+-- LSP stack is native now (nvim 0.12): server configs live in <config>/lsp/*.lua,
+-- wired by lua/config/lsp.lua via vim.lsp.enable(). This file only disables the
+-- old plugin stack and keeps formatting (conform) + completion (blink) tweaks.
+-- Binaries are installed by scripts/install-lsp-tools.sh (brew + npm -g).
 
 local constants = require("config.constants")
 
@@ -24,49 +25,14 @@ local function web_formatter()
 end
 
 return {
-  {
-    "neovim/nvim-lspconfig",
-    dependencies = {
-      "mason-org/mason.nvim",
-      "mason-org/mason-lspconfig.nvim",
-    },
-    opts = {
-      servers = {
-        -- Disable eslint LSP since we're using eslint_d/oxlint
-        eslint = false,
-        tailwindcss = require("plugins.lsp.tailwindcss").opts,
-        denols = require("plugins.lsp.denols").opts,
-        vtsls = require("plugins.lsp.vtsls").opts,
-      },
-      setup = {
-        tailwindcss = require("plugins.lsp.tailwindcss").setup,
-        vtsls = require("plugins.lsp.vtsls").setup,
-      },
-    },
-  },
-
-  -- Mason package manager for LSP servers
-  {
-    "mason-org/mason.nvim",
-    opts = {
-      ensure_installed = {
-        -- LSP servers
-        "deno",
-        "tailwindcss-language-server",
-        -- Formatters (daemon versions for better performance)
-        "prettierd",
-        "oxfmt",
-        "stylua", -- Lua formatter
-        -- Linters (daemon versions for better performance)
-        "eslint_d",
-        "oxlint",
-      },
-    },
-  },
+  -- Native LSP replaces the whole nvim-lspconfig/mason stack
+  { "neovim/nvim-lspconfig", enabled = false },
+  { "mason-org/mason.nvim", enabled = false },
+  { "mason-org/mason-lspconfig.nvim", enabled = false },
 
   -- Conform formatter with Deno/oxfmt/Node.js auto-detection
   -- opts is a function so require("conform.util") is deferred until conform loads
-  -- (a table literal forces conform + mason onto the startup path; ~6ms saved).
+  -- (a table literal forces conform onto the startup path; ~6ms saved).
   {
     "stevearc/conform.nvim",
     opts = function()
@@ -113,9 +79,8 @@ return {
           },
           oxfmt = {
             -- Prefer the project-local oxfmt (pinned in package.json) over the
-            -- global Mason one, so format-on-save matches `pnpm format` exactly.
-            -- A version skew (Mason 0.55 vs project 0.56) reformats files
-            -- differently otherwise.
+            -- global one, so format-on-save matches `pnpm format` exactly.
+            -- A version skew reformats files differently otherwise.
             command = require("conform.util").find_executable(
               { "node_modules/.bin/oxfmt" },
               "oxfmt"

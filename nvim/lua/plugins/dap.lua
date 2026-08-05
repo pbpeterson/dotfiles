@@ -5,18 +5,6 @@ return {
   {
     "mfussenegger/nvim-dap",
     optional = true,
-    dependencies = {
-      {
-        "mason-org/mason.nvim",
-        opts = function(_, opts)
-          opts.ensure_installed = opts.ensure_installed or {}
-          vim.list_extend(opts.ensure_installed, {
-            "js-debug-adapter",
-            "deno",
-          })
-        end,
-      },
-    },
     config = function()
       local dap = require("dap")
 
@@ -29,7 +17,8 @@ return {
           executable = {
             command = "node",
             args = {
-              LazyVim.get_pkg_path("js-debug-adapter", "/js-debug/src/dapDebugServer.js"),
+              -- Installed by scripts/install-lsp-tools.sh (GitHub release tarball)
+              vim.fn.expand("~/.local/share/js-debug/js-debug/src/dapDebugServer.js"),
               "${port}",
             },
           },
