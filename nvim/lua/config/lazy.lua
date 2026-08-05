@@ -36,7 +36,10 @@ require("lazy").setup({
     -- it quiet (no startup popup); the update list still populates.
     enabled = true,
     notify = false,
+    frequency = 86400, -- once a day is plenty; default (1h) spawns a git process per plugin every hour
   },
+  -- No file watchers on the config dir; :Lazy reload still works manually.
+  change_detection = { enabled = false },
   performance = {
     rtp = {
       -- disable some rtp plugins

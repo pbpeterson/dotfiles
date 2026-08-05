@@ -40,6 +40,19 @@ vim.opt.shada = { "!", "'1000", "<50", "s10", "h", "r/tmp/", "r/private/" }
 -- Performance: limit syntax highlighting on long lines
 vim.opt.synmaxcol = 300 -- Only highlight first 300 columns
 
+-- Performance: skip legacy provider probing. No remote (python/ruby/perl/node)
+-- plugins are used, and any plugin calling has('python3') would otherwise spawn
+-- an interpreter to find out.
+vim.g.loaded_python3_provider = 0
+vim.g.loaded_ruby_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_node_provider = 0
+
+-- Performance: disable all snacks animations (indent scope sweep, etc.).
+-- Scroll animation is already off; this stops the remaining redraw-per-frame
+-- animation timers.
+vim.g.snacks_animate = false
+
 -- Global rounded borders for all floating windows (nvim 0.12 native)
 vim.o.winborder = "rounded"
 
