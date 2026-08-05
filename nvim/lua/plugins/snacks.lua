@@ -15,6 +15,8 @@ return {
   -- tokyonight is the LazyVim default theme; we use kanagawa, so drop it entirely.
   -- Must set LazyVim's colorscheme first (below) or startup errors loading tokyonight.
   { "folke/tokyonight.nvim", enabled = false },
+  -- catppuccin ships with LazyVim as an alternate theme; unused here.
+  { "catppuccin/nvim", enabled = false },
 
   -- Tell LazyVim the active colorscheme so it stops requiring tokyonight at startup
   { "LazyVim/LazyVim", opts = { colorscheme = "kanagawa" } },
