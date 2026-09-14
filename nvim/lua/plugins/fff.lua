@@ -24,6 +24,48 @@ return {
     },
   },
   lazy = false, -- the plugin lazy-initialises itself
+  -- Dim the editor behind the live grep picker, like the snacks backdrop
+  init = function()
+    vim.api.nvim_set_hl(0, "FFFBackdrop", { bg = "#000000", default = true })
+
+    local backdrop_win
+    local group = vim.api.nvim_create_augroup("fff_backdrop", { clear = true })
+
+    vim.api.nvim_create_autocmd("User", {
+      group = group,
+      pattern = "FFFOpen",
+      callback = function()
+        if require("fff.picker_ui.picker_ui").state.mode ~= "grep" then
+          return
+        end
+        local buf = vim.api.nvim_create_buf(false, true)
+        vim.bo[buf].bufhidden = "wipe"
+        backdrop_win = vim.api.nvim_open_win(buf, false, {
+          relative = "editor",
+          row = 0,
+          col = 0,
+          width = vim.o.columns,
+          height = vim.o.lines,
+          style = "minimal",
+          focusable = false,
+          zindex = 1,
+        })
+        vim.wo[backdrop_win].winhighlight = "Normal:FFFBackdrop"
+        vim.wo[backdrop_win].winblend = 60
+      end,
+    })
+
+    vim.api.nvim_create_autocmd("User", {
+      group = group,
+      pattern = "FFFClose",
+      callback = function()
+        if backdrop_win and vim.api.nvim_win_is_valid(backdrop_win) then
+          vim.api.nvim_win_close(backdrop_win, true)
+        end
+        backdrop_win = nil
+      end,
+    })
+  end,
   keys = {
     {
       "ff",
