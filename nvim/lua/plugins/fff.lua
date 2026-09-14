@@ -9,12 +9,16 @@ return {
   opts = {
     prompt = " ",
     layout = {
+      -- Same size as the snacks default layout: 80%, at least 120 columns wide
+      width = function(columns)
+        return math.min(1, math.max(0.8, 120 / columns))
+      end,
+      height = 0.8,
       prompt_position = "top",
       border = "rounded",
       show_path_first = true,
     },
     hl = {
-      border = "FFFBorder",
       title = "FloatTitle",
       prompt = "Special",
       matched = "Special",
