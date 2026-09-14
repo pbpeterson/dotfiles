@@ -4,8 +4,8 @@
 
 # ============================================================================
 # File Listing (lsd)
+# `ls` stays the standard binary so scripts and tools get plain output.
 # ============================================================================
-alias ls="lsd"
 alias ll="lsd -la"
 alias la="lsd -a"
 alias lt="lsd --tree"
@@ -13,11 +13,9 @@ alias l="lsd -l"
 
 # ============================================================================
 # Modern Replacements
+# Standard commands (cat, du, top, ps) are not shadowed. Call bat, dust,
+# btop, procs directly when you want the decorated version.
 # ============================================================================
-alias cat="bat"
-alias du="dust"
-alias top="btop"
-alias ps="procs"  # nicer ps; use `command ps` for scripting
 alias y="yazi"
 alias pg="pgcli"  # interactive postgres; use psql for scripts/pipes
 alias lcli="litecli"  # interactive sqlite (autocomplete + syntax highlight)
@@ -88,7 +86,8 @@ tmux() {
 # ============================================================================
 # Claude Code
 # ============================================================================
-alias yolo="claude --dangerously-skip-permissions"  # skips all permission prompts
+# skips all permission prompts, and appends my communication rules
+alias yolo='claude --dangerously-skip-permissions --append-system-prompt "$(cat ~/.claude/sr_opus_5_system_prompt.md)"'
 
 # ============================================================================
 # Caffeinate
