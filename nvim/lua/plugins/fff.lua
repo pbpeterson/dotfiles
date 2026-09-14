@@ -24,7 +24,7 @@ return {
     },
   },
   lazy = false, -- the plugin lazy-initialises itself
-  -- Dim the editor behind the live grep picker, like the snacks backdrop
+  -- Dim the editor behind the fff pickers, like the snacks backdrop
   init = function()
     vim.api.nvim_set_hl(0, "FFFBackdrop", { bg = "#000000", default = true })
 
@@ -35,9 +35,6 @@ return {
       group = group,
       pattern = "FFFOpen",
       callback = function()
-        if require("fff.picker_ui.picker_ui").state.mode ~= "grep" then
-          return
-        end
         local buf = vim.api.nvim_create_buf(false, true)
         vim.bo[buf].bufhidden = "wipe"
         backdrop_win = vim.api.nvim_open_win(buf, false, {
@@ -48,7 +45,8 @@ return {
           height = vim.o.lines,
           style = "minimal",
           focusable = false,
-          zindex = 1,
+          -- Above other floats like the snacks explorer (33), below fff windows (51+)
+          zindex = 50,
         })
         vim.wo[backdrop_win].winhighlight = "Normal:FFFBackdrop"
         vim.wo[backdrop_win].winblend = 60
