@@ -218,3 +218,11 @@ alias nv="NVIM_APPNAME=nvim_native nvim"
 
 # Update LSP servers/formatters/linters/DAP (ex-mason, now brew + npm + GitHub)
 alias lspup="$HOME/dotfiles/scripts/install-lsp-tools.sh"
+
+# Open Neovim like the `:e` command inside Neovim.
+# `e` starts Neovim; `e file ...` opens the given files.
+e() { nvim "$@" }
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/pbpeterson/.local/bin:$PATH"
