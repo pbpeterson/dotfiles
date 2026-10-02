@@ -86,8 +86,8 @@ tmux() {
 # ============================================================================
 # Claude Code
 # ============================================================================
-# skips all permission prompts, and appends my communication rules
-alias yolo='claude --dangerously-skip-permissions --append-system-prompt "$(cat ~/.claude/sr_opus_5_system_prompt.md)"'
+# skips all permission prompts
+alias yolo='claude --dangerously-skip-permissions'
 
 # ============================================================================
 # Caffeinate
