@@ -6,7 +6,6 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 # ~/.zshrc - Zsh configuration
-# Last updated: 2025-12-22
 # Tested on: macOS with Homebrew
 
 # ============================================================================
@@ -25,6 +24,9 @@ export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 
 # Create directories if they don't exist
 [[ -d "$XDG_DATA_HOME/zsh" ]] || mkdir -p "$XDG_DATA_HOME/zsh" "$XDG_CACHE_HOME/zsh"
+
+# Root of the dotfiles repo: the real path of this file, two levels up.
+export DOTFILES="${${(%):-%x}:A:h:h}"
 
 # ============================================================================
 # PATH Configuration
@@ -68,10 +70,7 @@ export ZSH_DISABLE_COMPFIX=true
 # only set if unset so OMZ's default ~/.zcompdump-* isn't used).
 export ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/zcompdump-${ZSH_VERSION}"
 
-# Required plugins - installation instructions:
-# fzf-tab: git clone https://github.com/Aloxaf/fzf-tab ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/fzf-tab
-# zsh-autosuggestions: git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-# fast-syntax-highlighting: git clone https://github.com/zdharma-continuum/fast-syntax-highlighting ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/fast-syntax-highlighting
+# Required plugins and the theme: "./install.sh bootstrap" in the dotfiles repo installs them.
 # Rebind autosuggest widgets once instead of on every prompt; noticeably lower
 # per-keystroke latency in long-lived shells.
 ZSH_AUTOSUGGEST_MANUAL_REBIND=1
@@ -217,12 +216,8 @@ alias cd="z"
 alias nv="NVIM_APPNAME=nvim_native nvim"
 
 # Update LSP servers/formatters/linters/DAP (ex-mason, now brew + npm + GitHub)
-alias lspup="$HOME/dotfiles/scripts/install-lsp-tools.sh"
+alias lspup="$DOTFILES/scripts/install-lsp-tools.sh"
 
 # Open Neovim like the `:e` command inside Neovim.
 # `e` starts Neovim; `e file ...` opens the given files.
 e() { nvim "$@" }
-
-
-# Added by Antigravity CLI installer
-export PATH="/Users/pbpeterson/.local/bin:$PATH"

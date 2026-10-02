@@ -5,8 +5,11 @@ set -euo pipefail
 # Override per-machine: export TMUX_PROJECT_ROOT="$HOME/whatever" in a non-committed rc.
 ROOT="${TMUX_PROJECT_ROOT:-$HOME/code}"
 
+# Root of the dotfiles repo, from the real path of this script.
+REPO="$(cd "$(dirname "$(realpath "$0")")/../.." && pwd)"
+
 # List dotfiles plus the grouped projects (parent/group/repo).
-DIR=$({ echo "$HOME/dotfiles"; [ -d "$ROOT" ] && fd --type d --min-depth 2 --max-depth 2 . "$ROOT"; } \
+DIR=$({ echo "$REPO"; [ -d "$ROOT" ] && fd --type d --min-depth 2 --max-depth 2 . "$ROOT"; } \
   | fzf --prompt="Project dir: ")
 [ -z "$DIR" ] && exit 0
 

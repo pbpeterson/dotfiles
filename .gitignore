@@ -20,3 +20,6 @@ nvim/.claude/
 *.swp
 *.swo
 *~
+
+# TPM clones live in ~/.tmux/plugins. Never track them here.
+tmux/plugins/

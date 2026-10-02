@@ -1,304 +1,328 @@
 #!/usr/bin/env bash
+# Dotfiles link manager and bootstrap. macOS only.
+#
+# Usage: ./install.sh <command>
+#
+#   status                        Report the state of each link. Read-only.
+#   link [--dry-run] [--backup]   Create or repair the links.
+#   unlink                        Remove the links that point into this repo.
+#   bootstrap                     Install the tools, then run "link --backup".
 
-# Dotfiles Installation Script
-# Installs all dependencies and sets up the environment
+set -u
 
-set -e  # Exit on error
+# Repo root, from the real location of this script.
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Link table. One row for each link: "<path in the repo>|<path below $HOME>".
+# ~/.tmux is not in the table. It is a real directory that holds the TPM
+# plugins. Do not link ~/.tmux or ~/.config/tmux into this repo.
+LINKS=(
+    "zsh/zshrc|.zshrc"
+    "zsh|.zsh"
+    "zsh/p10k.zsh|.p10k.zsh"
+    "tmux/tmux.conf|.tmux.conf"
+    "tmux/bin/tmux-project|.local/bin/tmux-project"
+    "tmux/bin/tmux-agents|.local/bin/tmux-agents"
+    "nvim|.config/nvim"
+    "wezterm/wezterm.lua|.wezterm.lua"
+    "kitty/kitty.conf|.config/kitty/kitty.conf"
+)
 
-# Helper functions
-print_step() {
-    echo -e "${BLUE}==>${NC} $1"
+usage() {
+    cat <<'EOF'
+Usage: ./install.sh <command>
+
+  status                        Report the state of each link. Read-only.
+  link [--dry-run] [--backup]   Create or repair the links.
+                                --dry-run  Print the changes. Change nothing.
+                                --backup   Move a real file or directory to
+                                           <path>.backup.<timestamp>, then link.
+  unlink                        Remove the links that point into this repo.
+  bootstrap                     Install the tools, then run "link --backup".
+EOF
 }
 
-print_success() {
-    echo -e "${GREEN}✓${NC} $1"
+say() {
+    printf '%-8s %s\n' "$1" "$2"
 }
 
-print_warning() {
-    echo -e "${YELLOW}!${NC} $1"
-}
+# ---------------------------------------------------------------------------
+# Links
+# ---------------------------------------------------------------------------
 
-print_error() {
-    echo -e "${RED}✗${NC} $1"
-}
-
-# Detect OS
-detect_os() {
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        OS="macos"
-    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        OS="linux"
+# Set SRC, DST and STATE for one table row.
+#   OK       DST is a link to SRC.
+#   WRONG    DST is a link to a different path.
+#   MISSING  DST does not exist.
+#   BLOCKED  DST exists and is not a link.
+#   NOSRC    SRC does not exist in the repo.
+row_state() {
+    SRC="$REPO/${1%%|*}"
+    DST="$HOME/${1#*|}"
+    if [ ! -e "$SRC" ]; then
+        STATE=NOSRC
+    elif [ -L "$DST" ]; then
+        if [ "$(readlink "$DST")" = "$SRC" ]; then STATE=OK; else STATE=WRONG; fi
+    elif [ -e "$DST" ]; then
+        STATE=BLOCKED
     else
-        print_error "Unsupported OS: $OSTYPE"
-        exit 1
+        STATE=MISSING
     fi
-    print_success "Detected OS: $OS"
 }
 
-# Install Homebrew
+# Create or replace the link DST -> SRC with one rename.
+# Do not use "ln -sf" here. On a link to a directory it makes a nested link.
+make_link() {
+    local src="$1" dst="$2" tmp="$2.tmp.$$"
+    /bin/mkdir -p "$(dirname "$dst")" || return 1
+    if /bin/ln -s "$src" "$tmp" && /bin/mv -fh "$tmp" "$dst"; then
+        return 0
+    fi
+    if [ -L "$tmp" ]; then /bin/rm -f "$tmp"; fi
+    return 1
+}
+
+cmd_status() {
+    local row bad=0
+    for row in "${LINKS[@]}"; do
+        row_state "$row"
+        case "$STATE" in
+            OK)      say OK "$DST" ;;
+            WRONG)   say WRONG "$DST -> $(readlink "$DST") (expected $SRC)"; bad=1 ;;
+            MISSING) say MISSING "$DST (expected a link to $SRC)"; bad=1 ;;
+            BLOCKED) say BLOCKED "$DST (a real file or directory is there)"; bad=1 ;;
+            NOSRC)   say NOSRC "$DST (source is not in the repo: $SRC)"; bad=1 ;;
+        esac
+    done
+    # tmux also reads ~/.config/tmux/tmux.conf. If it exists, tmux loads a
+    # second config and TPM moves its plugin path to ~/.config/tmux/plugins.
+    if [ -e "$HOME/.config/tmux/tmux.conf" ] || [ -L "$HOME/.config/tmux/tmux.conf" ]; then
+        say ERROR "$HOME/.config/tmux/tmux.conf exists. Remove it. tmux must read only ~/.tmux.conf."
+        bad=1
+    fi
+    return "$bad"
+}
+
+cmd_link() {
+    local dry=0 backup=0 arg row changed=0 failed=0 stamp bak
+    for arg in "$@"; do
+        case "$arg" in
+            --dry-run) dry=1 ;;
+            --backup)  backup=1 ;;
+            *) echo "Unknown option for link: $arg" >&2; usage >&2; return 1 ;;
+        esac
+    done
+    stamp="$(date +%Y%m%d_%H%M%S)"
+
+    for row in "${LINKS[@]}"; do
+        row_state "$row"
+        case "$STATE" in
+            OK)
+                continue
+                ;;
+            NOSRC)
+                say NOSRC "$DST (source is not in the repo: $SRC)"
+                failed=1
+                continue
+                ;;
+            BLOCKED)
+                if [ "$backup" -eq 0 ]; then
+                    say BLOCKED "$DST (a real file or directory is there; use --backup)"
+                    failed=1
+                    continue
+                fi
+                bak="$DST.backup.$stamp"
+                say BACKUP "$DST -> $bak"
+                if [ "$dry" -eq 0 ] && ! /bin/mv "$DST" "$bak"; then
+                    say FAILED "$DST (backup failed)"
+                    failed=1
+                    continue
+                fi
+                ;;
+            WRONG)
+                say RELINK "$DST -> $SRC (was $(readlink "$DST"))"
+                ;;
+            MISSING)
+                say LINK "$DST -> $SRC"
+                ;;
+        esac
+        if [ "$STATE" = BLOCKED ]; then say LINK "$DST -> $SRC"; fi
+        changed=$((changed + 1))
+        if [ "$dry" -eq 0 ] && ! make_link "$SRC" "$DST"; then
+            say FAILED "$DST"
+            failed=1
+        fi
+    done
+
+    if [ "$dry" -eq 1 ]; then
+        echo "Dry run: $changed link(s) to change. Nothing changed."
+    elif [ "$changed" -eq 0 ]; then
+        echo "No change."
+    else
+        echo "$changed link(s) changed."
+    fi
+    return "$failed"
+}
+
+cmd_unlink() {
+    local row dst target removed=0
+    for row in "${LINKS[@]}"; do
+        dst="$HOME/${row#*|}"
+        if [ ! -L "$dst" ]; then continue; fi
+        target="$(readlink "$dst")"
+        case "$target" in
+            "$REPO"/*)
+                if /bin/rm "$dst"; then
+                    say UNLINK "$dst"
+                    removed=$((removed + 1))
+                fi
+                ;;
+            *)
+                say SKIP "$dst (points outside the repo: $target)"
+                ;;
+        esac
+    done
+    echo "$removed link(s) removed."
+}
+
+# ---------------------------------------------------------------------------
+# Bootstrap
+#
+# This part is not tested on a fresh machine. It does not ask questions and
+# it does not call sudo. Each step is safe to run again.
+# ---------------------------------------------------------------------------
+
+step() {
+    echo "==> $1"
+}
+
+warn() {
+    echo "warning: $1" >&2
+}
+
+# Clone a git repo if the directory is not there.
+clone_once() {
+    local url="$1" dir="$2"
+    if [ -d "$dir" ]; then
+        echo "    present: $dir"
+        return 0
+    fi
+    if git clone --depth 1 "$url" "$dir"; then
+        echo "    installed: $dir"
+    else
+        warn "Could not clone $url"
+        return 1
+    fi
+}
+
 install_homebrew() {
-    print_step "Installing Homebrew..."
+    step "Homebrew"
+    local shellenv='eval "$(/opt/homebrew/bin/brew shellenv)"'
 
-    if command -v brew &> /dev/null; then
-        print_warning "Homebrew already installed"
-        return
+    if ! command -v brew > /dev/null 2>&1 && [ ! -x /opt/homebrew/bin/brew ]; then
+        if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
+            warn "The Homebrew installer failed. Install Homebrew by hand (https://brew.sh), then run bootstrap again."
+            return 1
+        fi
     fi
 
-    if [[ "$OS" == "macos" ]]; then
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-        # Add Homebrew to PATH for Apple Silicon
-        if [[ $(uname -m) == "arm64" ]]; then
-            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-            eval "$(/opt/homebrew/bin/brew shellenv)"
+    if [ -x /opt/homebrew/bin/brew ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+        # Add Homebrew to the login shell. Never add the line twice.
+        if ! /usr/bin/grep -qF '/opt/homebrew/bin/brew shellenv' "$HOME/.zprofile" 2> /dev/null; then
+            echo "$shellenv" >> "$HOME/.zprofile"
         fi
-    elif [[ "$OS" == "linux" ]]; then
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.zprofile
-        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
     fi
 
-    print_success "Homebrew installed"
+    command -v brew > /dev/null 2>&1
 }
 
-# Install CLI tools via Homebrew
-install_cli_tools() {
-    print_step "Installing CLI tools..."
-
-    local tools=(
-        "tmux"          # Terminal multiplexer
-        "neovim"        # Modern vim
-        "lsd"           # Modern ls
-        "bat"           # Modern cat
-        "fd"            # Modern find
-        "ripgrep"       # Modern grep
-        "fzf"           # Fuzzy finder
-        "btop"          # Modern top
-        "zoxide"        # Smart cd
-        "git"           # Version control
-        "yazi"          # Terminal file manager
-        "dust"          # Modern du
-    )
-
-    for tool in "${tools[@]}"; do
-        if brew list "$tool" &> /dev/null; then
-            print_warning "$tool already installed"
-        else
-            print_step "Installing $tool..."
-            brew install "$tool"
-            print_success "$tool installed"
-        fi
-    done
+install_packages() {
+    step "Homebrew packages (Brewfile)"
+    if ! brew bundle --file="$REPO/Brewfile"; then
+        warn "brew bundle reported a failure. Run: brew bundle --file=$REPO/Brewfile"
+    fi
 }
 
-# Install Oh My Zsh
 install_oh_my_zsh() {
-    print_step "Installing Oh My Zsh..."
+    step "Oh My Zsh, plugins and theme"
+    local custom="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 
-    if [[ -d "$HOME/.oh-my-zsh" ]]; then
-        print_warning "Oh My Zsh already installed"
-        return
-    fi
-
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-    print_success "Oh My Zsh installed"
-}
-
-# Install Zsh plugins
-install_zsh_plugins() {
-    print_step "Installing Zsh plugins..."
-
-    local ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-
-    local plugins=(
-        "fzf-tab|https://github.com/Aloxaf/fzf-tab"
-        "zsh-autosuggestions|https://github.com/zsh-users/zsh-autosuggestions"
-        "zsh-syntax-highlighting|https://github.com/zsh-users/zsh-syntax-highlighting"
-    )
-
-    for entry in "${plugins[@]}"; do
-        local name="${entry%%|*}"
-        local url="${entry##*|}"
-        if [[ ! -d "$ZSH_CUSTOM/plugins/$name" ]]; then
-            print_step "Installing $name..."
-            if git clone "$url" "$ZSH_CUSTOM/plugins/$name"; then
-                print_success "$name installed"
-            else
-                print_error "Failed to clone $name"
-            fi
-        else
-            print_warning "$name already installed"
+    if [ ! -d "$HOME/.oh-my-zsh" ]; then
+        if ! sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended; then
+            warn "The Oh My Zsh installer failed."
+            return 1
         fi
-    done
-}
-
-# Install ASDF (version manager)
-install_asdf() {
-    print_step "Installing ASDF..."
-
-    if [[ -d "$HOME/.asdf" ]]; then
-        print_warning "ASDF already installed"
-        return
     fi
 
-    local asdf_version
-    asdf_version=$(git ls-remote --tags --sort=-v:refname https://github.com/asdf-vm/asdf.git "v*" | head -1 | sed 's/.*refs\/tags\///')
-    if [[ -z "$asdf_version" ]]; then
-        asdf_version="v0.14.1"
-        print_warning "Could not fetch latest ASDF version, falling back to $asdf_version"
-    fi
-    print_step "Installing ASDF $asdf_version..."
-    git clone https://github.com/asdf-vm/asdf.git "$HOME/.asdf" --branch "$asdf_version"
-    print_success "ASDF installed"
+    # The names match the plugins list and ZSH_THEME in zsh/zshrc.
+    clone_once https://github.com/Aloxaf/fzf-tab "$custom/plugins/fzf-tab"
+    clone_once https://github.com/zsh-users/zsh-autosuggestions "$custom/plugins/zsh-autosuggestions"
+    clone_once https://github.com/zdharma-continuum/fast-syntax-highlighting "$custom/plugins/fast-syntax-highlighting"
+    clone_once https://github.com/romkatv/powerlevel10k "$custom/themes/powerlevel10k"
 }
 
-# Setup dotfiles symlinks
-setup_symlinks() {
-    print_step "Setting up dotfiles symlinks..."
+# TPM and the tmux plugins live in ~/.tmux/plugins, outside this repo.
+# TPM reads the plugin list from ~/.tmux.conf, so the links must exist first.
+install_tmux_plugins() {
+    step "tmux plugin manager and plugins"
+    local tpm="$HOME/.tmux/plugins/tpm"
 
-    local DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-    # Backup existing files (handles regular files, directories, and symlinks)
-    backup_if_exists() {
-        if [[ -L "$1" ]]; then
-            print_warning "Removing existing symlink $1"
-            rm "$1"
-        elif [[ -f "$1" ]] || [[ -d "$1" ]]; then
-            local backup="$1.backup.$(date +%Y%m%d_%H%M%S)"
-            print_warning "Backing up $1 to $backup"
-            mv "$1" "$backup"
+    if [ ! -f "$tpm/tpm" ]; then
+        /bin/mkdir -p "$HOME/.tmux/plugins"
+        if ! git clone https://github.com/tmux-plugins/tpm "$tpm"; then
+            warn "Could not clone TPM. Clone it to $tpm, then press prefix + I in tmux."
+            return 0
         fi
-    }
-
-    # Zsh
-    backup_if_exists "$HOME/.zshrc"
-    backup_if_exists "$HOME/.zsh"
-    ln -sf "$DOTFILES_DIR/zshrc" "$HOME/.zshrc"
-    ln -sfn "$DOTFILES_DIR/zsh" "$HOME/.zsh"
-    print_success "Zsh config linked"
-
-    # Tmux
-    backup_if_exists "$HOME/.tmux.conf"
-    backup_if_exists "$HOME/.tmux"
-    ln -sf "$DOTFILES_DIR/tmux.conf" "$HOME/.tmux.conf"
-    ln -sfn "$DOTFILES_DIR/tmux" "$HOME/.tmux"
-    print_success "Tmux config linked"
-
-    # Neovim
-    backup_if_exists "$HOME/.config/nvim"
-    mkdir -p "$HOME/.config"
-    ln -sfn "$DOTFILES_DIR/nvim" "$HOME/.config/nvim"
-    print_success "Neovim config linked"
-
-    # WezTerm
-    backup_if_exists "$HOME/.wezterm.lua"
-    ln -sf "$DOTFILES_DIR/wezterm.lua" "$HOME/.wezterm.lua"
-    print_success "WezTerm config linked"
-
-    # Kitty
-    backup_if_exists "$HOME/.config/kitty/kitty.conf"
-    mkdir -p "$HOME/.config/kitty"
-    ln -sf "$DOTFILES_DIR/kitty.conf" "$HOME/.config/kitty/kitty.conf"
-    print_success "Kitty config linked"
+    fi
+    if ! "$tpm/bin/install_plugins"; then
+        warn "TPM did not install the plugins. Open tmux and press prefix + I."
+    fi
+    return 0
 }
 
-# Install Tmux Plugin Manager
-install_tpm() {
-    print_step "Installing Tmux Plugin Manager..."
+cmd_bootstrap() {
+    case "${OSTYPE:-}" in
+        darwin*) ;;
+        *) echo "This script supports macOS only." >&2; return 1 ;;
+    esac
 
-    if [[ -d "$HOME/.tmux/plugins/tpm" ]]; then
-        print_warning "TPM already installed"
-        return
-    fi
-
-    mkdir -p "$HOME/.tmux/plugins"
-    if git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"; then
-        print_success "TPM installed"
-    else
-        print_error "Failed to clone TPM"
-    fi
-}
-
-# Install Neovim plugins
-install_nvim_plugins() {
-    print_step "Installing Neovim plugins..."
-
-    if ! command -v nvim &> /dev/null; then
-        print_error "Neovim not installed, skipping plugin installation"
-        return
-    fi
-
-    print_step "Lazy.nvim will install plugins on first launch"
-    print_success "Neovim ready"
-}
-
-# Set Zsh as default shell
-set_default_shell() {
-    print_step "Setting Zsh as default shell..."
-
-    if [[ "$SHELL" == */zsh ]]; then
-        print_warning "Zsh is already the default shell"
-        return
-    fi
-
-    local zsh_path=$(which zsh)
-
-    # Add zsh to allowed shells if not present
-    if ! grep -q "$zsh_path" /etc/shells; then
-        print_step "Adding zsh to /etc/shells (requires sudo)..."
-        echo "$zsh_path" | sudo tee -a /etc/shells
-    fi
-
-    print_step "Changing default shell (requires sudo)..."
-    sudo chsh -s "$zsh_path" "$USER"
-    print_success "Default shell set to Zsh"
-    print_warning "You'll need to log out and back in for this to take effect"
-}
-
-# Main installation flow
-main() {
-    echo -e "${BLUE}"
-    echo "╔════════════════════════════════════════╗"
-    echo "║   Dotfiles Installation Script         ║"
-    echo "╚════════════════════════════════════════╝"
-    echo -e "${NC}"
-
-    detect_os
-    install_homebrew
-    install_cli_tools
+    install_homebrew || return 1
+    install_packages
     install_oh_my_zsh
-    install_zsh_plugins
-    install_asdf
-    setup_symlinks
-    install_tpm
-    install_nvim_plugins
+
+    step "Links"
+    cmd_link --backup || warn "Some links failed. Run: ./install.sh status"
+
+    install_tmux_plugins
 
     echo ""
-    print_step "Installation complete!"
-    echo ""
-    echo -e "${GREEN}Next steps:${NC}"
-    echo "  1. Restart your terminal or run: source ~/.zshrc"
-    echo "  2. Open tmux and press 'prefix + I' to install tmux plugins"
-    echo "  3. Open nvim - plugins will install automatically"
-    echo ""
-
-    # Ask about default shell
-    read -p "Do you want to set Zsh as your default shell? (y/n) " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        set_default_shell
-    fi
-
-    echo ""
-    print_success "All done! Enjoy your new setup! 🚀"
+    step "Bootstrap complete."
+    echo "  1. Open a new terminal."
+    echo "  2. Run $REPO/scripts/install-lsp-tools.sh to install the language servers."
+    echo "  3. Open nvim. The plugins install on the first start."
+    echo "  4. Run ./install.sh status to check the links."
 }
 
-# Run main function
-main
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+main() {
+    if [ "$#" -eq 0 ]; then
+        usage
+        return 1
+    fi
+    local cmd="$1"
+    shift
+    case "$cmd" in
+        status)    cmd_status ;;
+        link)      cmd_link "$@" ;;
+        unlink)    cmd_unlink ;;
+        bootstrap) cmd_bootstrap ;;
+        -h|--help|help) usage ;;
+        *) echo "Unknown command: $cmd" >&2; usage >&2; return 1 ;;
+    esac
+}
+
+main "$@"
