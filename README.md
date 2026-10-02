@@ -16,8 +16,7 @@ dotfiles/
 │   ├── aliases.zsh
 │   ├── functions.zsh
 │   ├── git.zsh              # fzf git helpers
-│   ├── tools.zsh            # fzf, atuin and asdf setup
-│   └── completions/         # tracked completion files, first in fpath
+│   └── tools.zsh            # fzf, atuin and asdf setup
 ├── tmux/
 │   ├── tmux.conf
 │   └── bin/
@@ -97,7 +96,7 @@ The links in the home directory point into the work tree of this repo. If you ch
 
 - `zsh/zshrc` loads Oh My Zsh with the plugins `fzf-tab`, `git`, `zsh-autosuggestions` and `fast-syntax-highlighting`, and the Powerlevel10k theme.
 - `zsh/zshrc` names each module file that it sources: `aliases.zsh`, `functions.zsh`, `tools.zsh`, `git.zsh`. Do not source `~/.zsh/*.zsh` by glob. That would also load `p10k.zsh` and `zshrc`.
-- `zsh/completions/` comes before the Homebrew completion directory in `fpath`.
+- Completion files come from Homebrew (`$HOMEBREW_PREFIX/share/zsh/site-functions`). This repo tracks none.
 - Secrets and machine-specific settings go in `~/.zshrc.local`. The file is not in this repo. `zsh/zshrc` sources it if it exists.
 - Caches go to `~/.cache/zsh`. The history goes to `~/.local/share/zsh`.
 

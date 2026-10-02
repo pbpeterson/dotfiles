@@ -81,7 +81,6 @@ plugins=(fzf-tab git zsh-autosuggestions fast-syntax-highlighting)
 
 # Completion search paths must be in fpath BEFORE OMZ runs compinit.
 FPATH="$HOMEBREW_PREFIX/share/zsh/site-functions:$FPATH"
-fpath=($HOME/.zsh/completions $fpath)
 
 # Load Oh My Zsh with error handling
 if [[ -f $ZSH/oh-my-zsh.sh ]]; then
